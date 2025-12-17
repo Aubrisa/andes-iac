@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS TaskDefinition for Aubrisa Andes Chat API Service
+
+Parameters:
+  AppName:
+    Type: String
+  EnvironmentName:
+    Type: String
+  ImageTag:
+    Type: String
+  EcrRepositoryUri:
+    Type: String
+  TaskExecutionRoleArn:
+    Type: String
+  TaskRoleArn:
+    Type: String
+  LogGroupChat:
+    Type: String
+  ChatAppId:
+    Type: String
+  TenantId:
+    Type: String
+  ChatOAuthConnectionName:
+    Type: String
+  AiApiKey:
+    Type: String
+  AiEndpoint:
+    Type: String
+  AiChatModelId:
+    Type: String
+  AiEmbeddingModelId:
+    Type: String
+
+Resources:
+  TaskDefChat:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub '${AppName}-chat'
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      ExecutionRoleArn: !Ref TaskExecutionRoleArn
+      TaskRoleArn: !Ref TaskRoleArn
+      ContainerDefinitions:
+        - Name: chat
+          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-chat:${ImageTag}-aws'
+          PortMappings:
+            - ContainerPort: 8080
+          Environment:
+            - Name: AWSSETTINGS__REGION
+              Value: !Ref AWS::Region
+            - Name: MicrosoftAppType
+              Value: Singletenant
+            - Name: MicrosoftAppId
+              Value: !Ref ChatAppId
+            - Name: MicrosoftAppTenantId
+              Value: !Ref TenantId
+            - Name: CHATSETTINGS__AUTHENTICATIONCONFIGNAME
+              Value: !Ref ChatOAuthConnectionName
+            - Name: CHATSETTINGS__AIAPIKEY
+              Value: !Ref AiApiKey
+            - Name: CHATSETTINGS__AIENDPOINT
+              Value: !Ref AiEndpoint
+            - Name: CHATSETTINGS__CHATMODELID
+              Value: !Ref AiChatModelId
+            - Name: CHATSETTINGS__EMBEDDINGMODELID
+              Value: !Ref AiEmbeddingModelId
+          Secrets:
+            - Name: MicrosoftAppPassword
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/chat-api-key'
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroupChat
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: chat
+
+Outputs:
+  TaskDefChatArn:
+    Value: !Ref TaskDefChat

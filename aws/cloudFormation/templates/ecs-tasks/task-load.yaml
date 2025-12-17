@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS TaskDefinition for Aubrisa Andes Load Service
+
+Parameters:
+  AppName:
+    Type: String
+  EnvironmentName:
+    Type: String
+  ImageTag:
+    Type: String
+  EcrRepositoryUri:
+    Type: String
+  TaskExecutionRoleArn:
+    Type: String
+  TaskRoleArn:
+    Type: String
+  LogGroupLoad:
+    Type: String
+  EfsFileSystemId:
+    Type: String
+  EfsAccessPointId:
+    Type: String
+
+Resources:
+  TaskDefLoad:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub '${AppName}-load'
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      ExecutionRoleArn: !Ref TaskExecutionRoleArn
+      TaskRoleArn: !Ref TaskRoleArn
+      ContainerDefinitions:
+        - Name: load
+          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-load:${ImageTag}-aws'
+          PortMappings:
+            - ContainerPort: 8080
+          Environment:
+            - Name: AWSSETTINGS__REGION
+              Value: !Ref AWS::Region
+            - Name: AWSSETTINGS__MESSAGEDATAPATH
+              Value: /mnt/shared/load-messages
+            - Name: LOADSETTINGS_DATA_PATH
+              Value: /mnt/shared/load-data
+          Secrets:
+            - Name: TargetConnectionString
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-load-store-connection'
+            - Name: AppConnectionString
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-load-app-connection'
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroupLoad
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: load
+          MountPoints:
+            - ContainerPath: /mnt/shared
+              SourceVolume: shared-files
+
+      Volumes:
+        - Name: shared-files
+          EFSVolumeConfiguration:
+            FilesystemId: !Ref EfsFileSystemId
+            TransitEncryption: ENABLED
+            AuthorizationConfig:
+              AccessPointId: !Ref EfsAccessPointId
+
+Outputs:
+  TaskDefLoadArn:
+    Value: !Ref TaskDefLoad

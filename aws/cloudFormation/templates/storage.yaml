@@ -1,0 +1,160 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Storage and messaging for Aubrisa Andes (S3, EFS, SQS, log groups)
+
+Parameters:
+  AppName:
+    Type: String
+  EnvironmentName:
+    Type: String
+  LogRetentionDays:
+    Type: Number
+    Default: 7
+    AllowedValues: [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653]
+    Description: CloudWatch log retention period in days
+  PublicSubnet1Id:
+    Type: String
+  PublicSubnet2Id:
+    Type: String
+  EfsSecurityGroupId:
+    Type: String
+
+Resources:
+  SharedFileSystem:
+    Type: AWS::EFS::FileSystem
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      Encrypted: true
+      PerformanceMode: generalPurpose
+      ThroughputMode: bursting
+      FileSystemTags:
+        - Key: Name
+          Value: !Sub '${AppName}-${EnvironmentName}-efs'
+
+  SharedMountTargetAz1:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref SharedFileSystem
+      SubnetId: !Ref PublicSubnet1Id
+      SecurityGroups:
+        - !Ref EfsSecurityGroupId
+
+  SharedMountTargetAz2:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref SharedFileSystem
+      SubnetId: !Ref PublicSubnet2Id
+      SecurityGroups:
+        - !Ref EfsSecurityGroupId
+
+  SharedAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      FileSystemId: !Ref SharedFileSystem
+      PosixUser:
+        Gid: "1000"
+        Uid: "1000"
+      RootDirectory:
+        Path: /shared
+        CreationInfo:
+          OwnerGid: "1000"
+          OwnerUid: "1000"
+          Permissions: "0755"
+
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      BucketName: !Sub '${AppName}-${EnvironmentName}-storage'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  SqsQueue:
+    Type: AWS::SQS::Queue
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      QueueName: !Sub '${AppName}-${EnvironmentName}-queue'
+      MessageRetentionPeriod: 1209600
+
+  LogGroupApi:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub '/andes/${EnvironmentName}/api'
+      RetentionInDays: !Ref LogRetentionDays
+  LogGroupChat:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub '/andes/${EnvironmentName}/chat'
+      RetentionInDays: !Ref LogRetentionDays
+  LogGroupUi:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub '/andes/${EnvironmentName}/ui'
+      RetentionInDays: !Ref LogRetentionDays
+  LogGroupReport:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub '/andes/${EnvironmentName}/report'
+      RetentionInDays: !Ref LogRetentionDays
+  LogGroupLoad:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub '/andes/${EnvironmentName}/load'
+      RetentionInDays: !Ref LogRetentionDays
+  LogGroupAdjust:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub '/andes/${EnvironmentName}/adjustments'
+      RetentionInDays: !Ref LogRetentionDays
+  LogGroupMurex:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub '/andes/${EnvironmentName}/murex'
+      RetentionInDays: !Ref LogRetentionDays
+
+Outputs:
+  S3BucketName:
+    Value: !Ref S3Bucket
+  S3BucketArn:
+    Value: !GetAtt S3Bucket.Arn
+  SqsQueueUrl:
+    Value: !Ref SqsQueue
+  SqsQueueArn:
+    Value: !GetAtt SqsQueue.Arn
+  LogGroupApi:
+    Value: !Ref LogGroupApi
+  LogGroupChat:
+    Value: !Ref LogGroupChat
+  LogGroupUi:
+    Value: !Ref LogGroupUi
+  LogGroupReport:
+    Value: !Ref LogGroupReport
+  LogGroupLoad:
+    Value: !Ref LogGroupLoad
+  LogGroupAdjust:
+    Value: !Ref LogGroupAdjust
+  LogGroupMurex:
+    Value: !Ref LogGroupMurex
+  EfsFileSystemId:
+    Value: !Ref SharedFileSystem
+  EfsAccessPointId:
+    Value: !Ref SharedAccessPoint

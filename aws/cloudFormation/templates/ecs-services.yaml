@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS cluster and nested service stacks for Aubrisa Andes
+
+Parameters:
+  AppName:
+    Type: String
+  EnvironmentName:
+    Type: String
+  DesiredCount:
+    Type: Number
+  EcsSecurityGroupId:
+    Type: String
+  PublicSubnet1Id:
+    Type: String
+  PublicSubnet2Id:
+    Type: String
+  TgApiArn:
+    Type: String
+  TgChatArn:
+    Type: String
+  TgUiArn:
+    Type: String
+
+  TaskDefApiArn:
+    Type: String
+  TaskDefChatArn:
+    Type: String
+  TaskDefUiArn:
+    Type: String
+  TaskDefReportingArn:
+    Type: String
+  TaskDefLoadArn:
+    Type: String
+  TaskDefAdjustmentsArn:
+    Type: String
+  TaskDefMurexArn:
+    Type: String
+
+Resources:
+  EcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub '${AppName}-${EnvironmentName}'
+
+  ServiceApiStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: ./ecs-services/service-api.yaml
+      Parameters:
+        ClusterName: !Ref EcsCluster
+        DesiredCount: !Ref DesiredCount
+        EcsSecurityGroupId: !Ref EcsSecurityGroupId
+        PublicSubnet1Id: !Ref PublicSubnet1Id
+        PublicSubnet2Id: !Ref PublicSubnet2Id
+        TargetGroupArn: !Ref TgApiArn
+        TaskDefArn: !Ref TaskDefApiArn
+        ContainerName: api
+        ContainerPort: 8080
+
+  ServiceChatStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: ./ecs-services/service-chat.yaml
+      Parameters:
+        ClusterName: !Ref EcsCluster
+        DesiredCount: !Ref DesiredCount
+        EcsSecurityGroupId: !Ref EcsSecurityGroupId
+        PublicSubnet1Id: !Ref PublicSubnet1Id
+        PublicSubnet2Id: !Ref PublicSubnet2Id
+        TargetGroupArn: !Ref TgChatArn
+        TaskDefArn: !Ref TaskDefChatArn
+        ContainerName: chat
+        ContainerPort: 8080
+
+  ServiceUiStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: ./ecs-services/service-ui.yaml
+      Parameters:
+        ClusterName: !Ref EcsCluster
+        DesiredCount: !Ref DesiredCount
+        EcsSecurityGroupId: !Ref EcsSecurityGroupId
+        PublicSubnet1Id: !Ref PublicSubnet1Id
+        PublicSubnet2Id: !Ref PublicSubnet2Id
+        TargetGroupArn: !Ref TgUiArn
+        TaskDefArn: !Ref TaskDefUiArn
+        ContainerName: ui
+        ContainerPort: 8080
+
+
+
+Outputs:
+  ClusterName:
+    Value: !Ref EcsCluster

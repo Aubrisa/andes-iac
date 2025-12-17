@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS TaskDefinition for Aubrisa Andes API
+
+Parameters:
+  AppName:
+    Type: String
+  EnvironmentName:
+    Type: String
+  TenantId:
+    Type: String
+  ClientId:
+    Type: String
+  ImageTag:
+    Type: String
+  EcrRepositoryUri:
+    Type: String
+  TaskExecutionRoleArn:
+    Type: String
+  TaskRoleArn:
+    Type: String
+  LoadBalancerDNS:
+    Type: String
+  LogGroupApi:
+    Type: String
+  EfsFileSystemId:
+    Type: String
+  EfsAccessPointId:
+    Type: String
+  AiEndpoint:
+    Type: String
+  AiChatModelId:
+    Type: String
+  AiEmbeddingModelId:
+    Type: String
+
+Resources:
+  TaskDefApi:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub '${AppName}-api'
+      Cpu: '8192'
+      Memory: '32768'
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      ExecutionRoleArn: !Ref TaskExecutionRoleArn
+      TaskRoleArn: !Ref TaskRoleArn
+      ContainerDefinitions:
+        - Name: api
+          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-api:${ImageTag}-aws'
+          PortMappings:
+            - ContainerPort: 8080
+          Environment:
+            - Name: ENTRAID_TENANTID
+              Value: !Ref TenantId
+            - Name: ENTRAID_CLIENTID
+              Value: !Ref ClientId
+            - Name: AWSSETTINGS__REGION
+              Value: !Ref AWS::Region
+            - Name: AWSSETTINGS__MESSAGEDATAPATH
+              Value: /mnt/shared/load-messages
+            - Name: REPORTSETTINGS__REPORTPATH
+              Value: /mnt/shared/reports
+            - Name: LOADSETTINGS__LOADSPATH
+              Value: /mnt/shared/load-definitions
+            - Name: LOADSETTINGS__DATAPATH
+              Value: /mnt/shared/load-data
+            - Name: AISETTINGS__AIENDPOINT
+              Value: !Ref AiEndpoint
+            - Name: AISETTINGS__CHATMODELID
+              Value: !Ref AiChatModelId
+            - Name: AISETTINGS__EMBEDDINGMODELID
+              Value: !Ref AiEmbeddingModelId
+            - Name: UI_BASE_URL
+              Value: !Sub 'http://${LoadBalancerDNS}'
+          Secrets:
+            - Name: ENTRAID__APISECRET
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/entraid-api-key'
+            - Name: AISETTINGS__AIAPIKEY
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/ai-api-key'
+            - Name: StoreConnectionString
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-store-connection'
+            - Name: AppConnectionString
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-app-connection'
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroupApi
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: api
+          MountPoints:
+            - ContainerPath: /mnt/shared
+              SourceVolume: shared-files
+
+      Volumes:
+        - Name: shared-files
+          EFSVolumeConfiguration:
+            FilesystemId: !Ref EfsFileSystemId
+            TransitEncryption: ENABLED
+            AuthorizationConfig:
+              AccessPointId: !Ref EfsAccessPointId
+
+Outputs:
+  TaskDefApiArn:
+    Value: !Ref TaskDefApi

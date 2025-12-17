@@ -1,0 +1,98 @@
+# IAM (Identity and Access Management) in AWS is a service that securely manages user 
+# identities, roles, and permissions to control access to AWS resources.
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM roles orchestrator for Aubrisa Andes ECS tasks
+
+Parameters:
+  AppName:
+    Type: String
+  EnvironmentName:
+    Type: String
+
+  SqsQueueArn:
+    Type: String
+  S3BucketArn:
+    Type: String
+
+Resources:
+  TaskExecutionRoleStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: iam/task-execution-role.yaml
+
+
+  ApiTaskRoleStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: iam/api-task-role.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+        S3BucketArn: !Ref S3BucketArn
+
+  ChatTaskRoleStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: iam/chat-task-role.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+
+  UiTaskRoleStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: iam/ui-task-role.yaml
+
+  ReportingTaskRoleStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: iam/reporting-task-role.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+        S3BucketArn: !Ref S3BucketArn
+
+  LoadTaskRoleStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: iam/load-task-role.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+        S3BucketArn: !Ref S3BucketArn
+        SqsQueueArn: !Ref SqsQueueArn
+
+  AdjustmentsTaskRoleStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: iam/adjustments-task-role.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+
+  MurexTaskRoleStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: iam/murex-task-role.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+
+Outputs:
+  TaskExecutionRoleArn:
+    Value: !GetAtt TaskExecutionRoleStack.Outputs.TaskExecutionRoleArn
+  ApiTaskRoleArn:
+    Value: !GetAtt ApiTaskRoleStack.Outputs.ApiTaskRoleArn
+  ChatTaskRoleArn:
+    Value: !GetAtt ChatTaskRoleStack.Outputs.ChatTaskRoleArn
+  UiTaskRoleArn:
+    Value: !GetAtt UiTaskRoleStack.Outputs.UiTaskRoleArn
+  ReportingTaskRoleArn:
+    Value: !GetAtt ReportingTaskRoleStack.Outputs.ReportingTaskRoleArn
+  LoadTaskRoleArn:
+    Value: !GetAtt LoadTaskRoleStack.Outputs.LoadTaskRoleArn
+  AdjustmentsTaskRoleArn:
+    Value: !GetAtt AdjustmentsTaskRoleStack.Outputs.AdjustmentsTaskRoleArn
+  MurexTaskRoleArn:
+    Value: !GetAtt MurexTaskRoleStack.Outputs.MurexTaskRoleArn

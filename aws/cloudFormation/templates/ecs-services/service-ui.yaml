@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS Service for Aubrisa Andes UI
+
+Parameters:
+  ClusterName:
+    Type: String
+  DesiredCount:
+    Type: Number
+  EcsSecurityGroupId:
+    Type: String
+  PublicSubnet1Id:
+    Type: String
+  PublicSubnet2Id:
+    Type: String
+  TargetGroupArn:
+    Type: String
+  TaskDefArn:
+    Type: String
+  ContainerName:
+    Type: String
+  ContainerPort:
+    Type: Number
+
+Resources:
+  ServiceUi:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub '${ClusterName}-ui'
+      Cluster: !Ref ClusterName
+      DesiredCount: !Ref DesiredCount
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups: [!Ref EcsSecurityGroupId]
+          Subnets: [!Ref PublicSubnet1Id, !Ref PublicSubnet2Id]
+      TaskDefinition: !Ref TaskDefArn
+      LoadBalancers:
+        - ContainerName: !Ref ContainerName
+          ContainerPort: !Ref ContainerPort
+          TargetGroupArn: !Ref TargetGroupArn
+
+Outputs:
+  ServiceName:
+    Value: !Ref ServiceUi

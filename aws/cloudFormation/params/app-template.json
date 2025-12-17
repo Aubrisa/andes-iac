@@ -1,0 +1,84 @@
+[
+  {
+    "ParameterKey": "AppName",
+    "ParameterValue": "andes"
+  },
+  {
+    "ParameterKey": "EnvironmentName",
+    "ParameterValue": "dev"
+  },
+  {
+    "ParameterKey": "ImageTag",
+    "ParameterValue": "latest-aws"
+  },
+  {
+    "ParameterKey": "VpcCidr",
+    "ParameterValue": "10.0.0.0/16"
+  },
+  {
+    "ParameterKey": "PublicSubnet1Cidr",
+    "ParameterValue": "10.0.1.0/24"
+  },
+  {
+    "ParameterKey": "PublicSubnet2Cidr",
+    "ParameterValue": "10.0.2.0/24"
+  },
+  {
+    "ParameterKey": "DbUsername",
+    "ParameterValue": "dbadmin"
+  },
+
+  {
+    "ParameterKey": "DbInstanceClass",
+    "ParameterValue": "db.m5.large"
+  },
+  {
+    "ParameterKey": "DbAllocatedStorage",
+    "ParameterValue": "100"
+  },
+  {
+    "ParameterKey": "DesiredCount",
+    "ParameterValue": "1"
+  },
+  {
+    "ParameterKey": "ChatAppId",
+    "ParameterValue": "CHAT_APP_ID"
+  },
+  {
+    "ParameterKey": "TenantId",
+    "ParameterValue": "TENANT_ID"
+  },
+  {
+    "ParameterKey": "ClientId",
+    "ParameterValue": "CLIENT_ID"
+  },
+  {
+    "ParameterKey": "ChatOAuthConnectionName",
+    "ParameterValue": "Azure AD"
+  },
+
+  {
+    "ParameterKey": "AiEndpoint",
+    "ParameterValue": "AI_ENDPOINT"
+  },
+  {
+    "ParameterKey": "AiChatModelId",
+    "ParameterValue": "gpt4.1"
+  },
+  {
+    "ParameterKey": "AiEmbeddingModelId",
+    "ParameterValue": "text-embedding-ada-002"
+  },
+  {
+    "ParameterKey": "DomainName",
+    "ParameterValue": "aubrisa.andes.com"
+  },
+  {
+    "ParameterKey": "HostedZoneId",
+    "ParameterValue": "ZXXXXXXXXXXXX"
+  },
+  {
+    "ParameterKey": "LogRetentionDays",
+    "ParameterValue": "7"
+  }
+]

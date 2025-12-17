@@ -1,0 +1,81 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "databaseUsername": {
+      "value": "andes_admin"
+    },
+    "dnsZone": {
+      "value": "aubrisa.com"
+    },
+    "appName": {
+      "value": "andes-01"
+    },
+    "displayName": {
+      "value": "Andes_01"
+    },
+    "sku": {
+      "value": "P1v3"
+    },
+    "registryUsername": {
+      "value": "GCR user name"
+    },
+    "clientId": {
+      "value": "[Entra App Registration Client Id]"
+    },
+    "tenantId": {
+      "value": "[Entra App Registration Tenant Id]"
+    },
+    "chatAppId": {
+      "value": "TODO"
+    },
+    "databasePassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/[subscription id]/resourceGroups/[resource group]/providers/Microsoft.KeyVault/vaults/[vault name]"
+        },
+        "secretName": "db-admin-password-dev01"
+      }
+    },
+    "registryPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/[subscription id]/resourceGroups/[resource group]/providers/Microsoft.KeyVault/vaults/[vault name]"
+        },
+        "secretName": "github-token"
+      }
+    },
+    "apiKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/[subscription id]/resourceGroups/[resource group]/providers/Microsoft.KeyVault/vaults/[vault name]"
+        },
+        "secretName": "azuread-api-key"
+      }
+    },
+    "chatApiKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/[subscription id]/resourceGroups/[resource group]/providers/Microsoft.KeyVault/vaults/[vault name]"
+        },
+        "secretName": "chat-api-key"
+      }
+    },
+    "aiApiKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/[subscription id]/resourceGroups/[resource group]/providers/Microsoft.KeyVault/vaults/[vault name]"
+        },
+        "secretName": "ai-api-key"
+      }
+    },
+    "aiSearchApiKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/[subscription id]/resourceGroups/[resource group]/providers/Microsoft.KeyVault/vaults/[vault name]"
+        },
+        "secretName": "ai-search-api-key"
+      }
+    }
+  }
+}

@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS TaskDefinition for Aubrisa Aubrisa Andes UI
+
+Parameters:
+  AppName:
+    Type: String
+  ImageTag:
+    Type: String
+  EcrRepositoryUri:
+    Type: String
+  TaskExecutionRoleArn:
+    Type: String
+  TaskRoleArn:
+    Type: String
+  DomainName:
+    Type: String
+  LogGroupUi:
+    Type: String
+  ClientId:
+    Type: String
+  TenantId:
+    Type: String
+
+Resources:
+  TaskDefUi:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub '${AppName}-ui'
+      Cpu: '256'
+      Memory: '512'
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      ExecutionRoleArn: !Ref TaskExecutionRoleArn
+      TaskRoleArn: !Ref TaskRoleArn
+      ContainerDefinitions:
+        - Name: ui
+          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-ui:${ImageTag}'
+          PortMappings:
+            - ContainerPort: 8080
+          Environment:
+            - Name: ANDES_SETTINGS_API_URL
+              Value: !Sub 'https://api.${DomainName}'
+            - Name: ANDES_SETTINGS_CLIENT_ID
+              Value: !Ref ClientId
+            - Name: ANDES_SETTINGS_TENANT_ID
+              Value: !Ref TenantId
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroupUi
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ui
+
+Outputs:
+  TaskDefUiArn:
+    Value: !Ref TaskDefUi

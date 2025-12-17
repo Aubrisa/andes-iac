@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS TaskDefinition for Aubrisa Andes Reporting Service
+
+Parameters:
+  AppName:
+    Type: String
+  EnvironmentName:
+    Type: String
+  ImageTag:
+    Type: String
+  EcrRepositoryUri:
+    Type: String
+  TaskExecutionRoleArn:
+    Type: String
+  TaskRoleArn:
+    Type: String
+  LogGroupReport:
+    Type: String
+  EfsFileSystemId:
+    Type: String
+  EfsAccessPointId:
+    Type: String
+
+Resources:
+  TaskDefReporting:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub '${AppName}-reporting'
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      ExecutionRoleArn: !Ref TaskExecutionRoleArn
+      TaskRoleArn: !Ref TaskRoleArn
+      ContainerDefinitions:
+        - Name: report
+          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-reporting:${ImageTag}-aws'
+          PortMappings:
+            - ContainerPort: 8080
+          Environment:
+            - Name: AWSSETTINGS__REGION
+              Value: !Ref AWS::Region
+            - Name: REPORTSETTINGS__REPORTPATH
+              Value: /mnt/shared/reports
+          Secrets:
+            - Name: StoreConnectionString
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-reporting-store-connection'
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroupReport
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: report
+          MountPoints:
+            - ContainerPath: /mnt/shared
+              SourceVolume: shared-files
+
+      Volumes:
+        - Name: shared-files
+          EFSVolumeConfiguration:
+            FilesystemId: !Ref EfsFileSystemId
+            TransitEncryption: ENABLED
+            AuthorizationConfig:
+              AccessPointId: !Ref EfsAccessPointId
+
+Outputs:
+  TaskDefReportingArn:
+    Value: !Ref TaskDefReporting

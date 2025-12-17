@@ -1,0 +1,212 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS task definition orchestrator for Aubrisa Andes (nested)
+
+Parameters:
+  AppName:
+    Type: String
+  EnvironmentName:
+    Type: String
+  ImageTag:
+    Type: String
+  EcrRepositoryUri:
+    Type: String
+    Default: "221556121332.dkr.ecr.eu-west-2.amazonaws.com"
+  TaskExecutionRoleArn:
+    Type: String
+  ApiTaskRoleArn:
+    Type: String
+  ChatTaskRoleArn:
+    Type: String
+  UiTaskRoleArn:
+    Type: String
+  ReportingTaskRoleArn:
+    Type: String
+  LoadTaskRoleArn:
+    Type: String
+  AdjustmentsTaskRoleArn:
+    Type: String
+  MurexTaskRoleArn:
+    Type: String
+  S3BucketName:
+    Type: String
+  LoadBalancerDNS:
+    Type: String
+  DomainName:
+    Type: String
+  LogGroupApi:
+    Type: String
+  LogGroupChat:
+    Type: String
+  LogGroupUi:
+    Type: String
+  LogGroupReport:
+    Type: String
+  LogGroupLoad:
+    Type: String
+  LogGroupAdjust:
+    Type: String
+  LogGroupMurex:
+    Type: String
+  ChatAppId:
+    Type: String
+  TenantId:
+    Type: String
+  ClientId:
+    Type: String
+  ChatOAuthConnectionName:
+    Type: String
+  AiApiKey:
+    Type: String
+  AiEndpoint:
+    Type: String
+  AiChatModelId:
+    Type: String
+  AiEmbeddingModelId:
+    Type: String
+  EfsFileSystemId:
+    Type: String
+  EfsAccessPointId:
+    Type: String
+
+Resources:
+  TaskDefApiStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: ecs-tasks/task-api.yaml
+      Parameters:
+        AppName: !Ref AppName
+        ClientId: !Ref ClientId
+        TenantId: !Ref TenantId
+        EnvironmentName: !Ref EnvironmentName
+        ImageTag: !Ref ImageTag
+        EcrRepositoryUri: !Ref EcrRepositoryUri
+        TaskExecutionRoleArn: !Ref TaskExecutionRoleArn
+        TaskRoleArn: !Ref ApiTaskRoleArn
+        LoadBalancerDNS: !Ref LoadBalancerDNS
+        LogGroupApi: !Ref LogGroupApi
+        AiEndpoint: !Ref AiEndpoint
+        AiChatModelId: !Ref AiChatModelId
+        AiEmbeddingModelId: !Ref AiEmbeddingModelId
+        EfsFileSystemId: !Ref EfsFileSystemId
+        EfsAccessPointId: !Ref EfsAccessPointId
+
+  TaskDefChatStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: ecs-tasks/task-chat.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+        ImageTag: !Ref ImageTag
+        EcrRepositoryUri: !Ref EcrRepositoryUri
+        TaskExecutionRoleArn: !Ref TaskExecutionRoleArn
+        TaskRoleArn: !Ref ChatTaskRoleArn
+        LogGroupChat: !Ref LogGroupChat
+        ChatAppId: !Ref ChatAppId
+        TenantId: !Ref TenantId
+        ChatOAuthConnectionName: !Ref ChatOAuthConnectionName
+        AiApiKey: !Ref AiApiKey
+        AiEndpoint: !Ref AiEndpoint
+        AiChatModelId: !Ref AiChatModelId
+        AiEmbeddingModelId: !Ref AiEmbeddingModelId
+
+  TaskDefUiStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: ecs-tasks/task-ui.yaml
+      Parameters:
+        AppName: !Ref AppName
+        ImageTag: !Ref ImageTag
+        EcrRepositoryUri: !Ref EcrRepositoryUri
+        TaskExecutionRoleArn: !Ref TaskExecutionRoleArn
+        TaskRoleArn: !Ref UiTaskRoleArn
+        DomainName: !Ref DomainName
+        LogGroupUi: !Ref LogGroupUi
+        ClientId: !Ref ClientId
+        TenantId: !Ref TenantId
+
+  TaskDefReportStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: ecs-tasks/task-reporting.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+        ImageTag: !Ref ImageTag
+        EcrRepositoryUri: !Ref EcrRepositoryUri
+        TaskExecutionRoleArn: !Ref TaskExecutionRoleArn
+        TaskRoleArn: !Ref ReportingTaskRoleArn
+        LogGroupReport: !Ref LogGroupReport
+        EfsFileSystemId: !Ref EfsFileSystemId
+        EfsAccessPointId: !Ref EfsAccessPointId
+
+  TaskDefLoadStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: ecs-tasks/task-load.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+        ImageTag: !Ref ImageTag
+        EcrRepositoryUri: !Ref EcrRepositoryUri
+        TaskExecutionRoleArn: !Ref TaskExecutionRoleArn
+        TaskRoleArn: !Ref LoadTaskRoleArn
+        LogGroupLoad: !Ref LogGroupLoad
+        EfsFileSystemId: !Ref EfsFileSystemId
+        EfsAccessPointId: !Ref EfsAccessPointId
+
+  TaskDefAdjustStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: ecs-tasks/task-adjustments.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+        ImageTag: !Ref ImageTag
+        EcrRepositoryUri: !Ref EcrRepositoryUri
+        TaskExecutionRoleArn: !Ref TaskExecutionRoleArn
+        TaskRoleArn: !Ref AdjustmentsTaskRoleArn
+        LogGroupAdjust: !Ref LogGroupAdjust
+
+  TaskDefMurexStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: ecs-tasks/task-murex.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+        ImageTag: !Ref ImageTag
+        EcrRepositoryUri: !Ref EcrRepositoryUri
+        TaskExecutionRoleArn: !Ref TaskExecutionRoleArn
+        TaskRoleArn: !Ref MurexTaskRoleArn
+        LogGroupMurex: !Ref LogGroupMurex
+
+Outputs:
+  TaskDefApiArn:
+    Value: !GetAtt TaskDefApiStack.Outputs.TaskDefApiArn
+  TaskDefChatArn:
+    Value: !GetAtt TaskDefChatStack.Outputs.TaskDefChatArn
+  TaskDefUiArn:
+    Value: !GetAtt TaskDefUiStack.Outputs.TaskDefUiArn
+  TaskDefReportingArn:
+    Value: !GetAtt TaskDefReportStack.Outputs.TaskDefReportingArn
+  TaskDefLoadArn:
+    Value: !GetAtt TaskDefLoadStack.Outputs.TaskDefLoadArn
+  TaskDefAdjustmentsArn:
+    Value: !GetAtt TaskDefAdjustStack.Outputs.TaskDefAdjustmentsArn
+  TaskDefMurexArn:
+    Value: !GetAtt TaskDefMurexStack.Outputs.TaskDefMurexArn

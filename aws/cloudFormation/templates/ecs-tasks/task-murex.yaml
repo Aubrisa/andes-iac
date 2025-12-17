@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS TaskDefinition for Aubrisa Andes Murex Calculation Service
+
+Parameters:
+  AppName:
+    Type: String
+  EnvironmentName:
+    Type: String
+  ImageTag:
+    Type: String
+  EcrRepositoryUri:
+    Type: String
+  TaskExecutionRoleArn:
+    Type: String
+  TaskRoleArn:
+    Type: String
+  LogGroupMurex:
+    Type: String
+
+Resources:
+  TaskDefMurex:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub '${AppName}-murex'
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      ExecutionRoleArn: !Ref TaskExecutionRoleArn
+      TaskRoleArn: !Ref TaskRoleArn
+      ContainerDefinitions:
+        - Name: murex
+          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-murex:${ImageTag}-aws'
+          PortMappings:
+            - ContainerPort: 8080
+          Environment:
+            - Name: AWSSETTINGS__REGION
+              Value: !Ref AWS::Region
+          Secrets:
+            - Name: StoreConnectionString
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-murex-connection'
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroupMurex
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: murex
+
+Outputs:
+  TaskDefMurexArn:
+    Value: !Ref TaskDefMurex
