@@ -129,107 +129,264 @@ graph TB
 ### Prerequisites
 
 - AWS CLI configured with permissions for CloudFormation, S3, ECS, RDS, IAM, Route 53, ACM, and Secrets Manager.
-- A private ECR or GHCR image registry secret ARN (`RegistryAuthSecretArn`).
+- A private ECR.
 - A public hosted zone in Route 53 containing `DomainName`.
 - PowerShell (scripts use backticks for line continuation).
 
-### Workflow
+## Prerequisites
 
-Add GHR credentials:
+1. **AWS Account** with administrative access
+2. **Domain name** with Route 53 hosted zone
+3. **Container images** pushed to your ECR repository
+4. **S3 Bucket** for CloudFormation package
 
+## Step 1: Copy Container Images
+
+Aubrisa will provide you with read access to their ECR repository <code class="copyable">AUBRISA-ACCOUNT-ID.dkr.ecr.REGION.amazonaws.com</code><button class="copy-button" onclick="navigator.clipboard.writeText('AUBRISA-ACCOUNT-ID.dkr.ecr.REGION.amazonaws.com')">Copy</button>
+
+Copy the images to your ECR:
+
+Bash:
+
+```bash
+# Login to both ECR repositories
+aws ecr get-login-password --region REGION | \
+  docker login --username AWS --password-stdin \
+  AUBRISA-ACCOUNT-ID.dkr.ecr.REGION.amazonaws.com
+
+aws ecr get-login-password --region YOUR-REGION | \
+  docker login --username AWS --password-stdin \
+  YOUR-ACCOUNT.dkr.ecr.YOUR-REGION.amazonaws.com
+
+# Create repositories in your ECR
+aws ecr create-repository --repository-name aubrisa/andes-api
+aws ecr create-repository --repository-name aubrisa/andes-ui
+aws ecr create-repository --repository-name aubrisa/andes-chat
+aws ecr create-repository --repository-name aubrisa/andes-reporting
+aws ecr create-repository --repository-name aubrisa/andes-load
+aws ecr create-repository --repository-name aubrisa/andes-adjustment-service
+aws ecr create-repository --repository-name aubrisa/andes-murex
+
+# Pull and push images
+docker pull \
+  AUBRISA-ACCOUNT-ID.dkr.ecr.REGION.amazonaws.com/aubrisa/andes-api:latest
+
+docker tag \
+  AUBRISA-ACCOUNT-ID.dkr.ecr.REGION.amazonaws.com/aubrisa/andes-api:latest \
+  YOUR-ACCOUNT.dkr.ecr.YOUR-REGION.amazonaws.com/aubrisa/andes-api:latest
+
+docker push \
+  YOUR-ACCOUNT.dkr.ecr.YOUR-REGION.amazonaws.com/aubrisa/andes-api:latest
+
+# Repeat for all services: ui, chat, reporting, load, adjustment-service, murex
 ```
-aws secretsmanager create-secret --name "andes/github-container-registry-auth" --description "GitHub Container Registry authentication for Andes application" --secret-string '{
-  "auths": {
-    "ghcr.io": {
-      "username": "your-github-username", 
-      "password": "your-github-token"
-    }
+
+PowerShell:
+
+```powershell
+# Login to both ECR repositories
+aws ecr get-login-password --region REGION | `
+  docker login --username AWS --password-stdin `
+  AUBRISA-ACCOUNT-ID.dkr.ecr.REGION.amazonaws.com
+
+aws ecr get-login-password --region YOUR-REGION | `
+  docker login --username AWS --password-stdin `
+  YOUR-ACCOUNT.dkr.ecr.YOUR-REGION.amazonaws.com
+
+# Create repositories in your ECR
+aws ecr create-repository --repository-name aubrisa/andes-api
+aws ecr create-repository --repository-name aubrisa/andes-ui
+aws ecr create-repository --repository-name aubrisa/andes-chat
+aws ecr create-repository --repository-name aubrisa/andes-reporting
+aws ecr create-repository --repository-name aubrisa/andes-load
+aws ecr create-repository --repository-name aubrisa/andes-adjustment-service
+aws ecr create-repository --repository-name aubrisa/andes-murex
+
+# Pull and push images
+docker pull `
+  AUBRISA-ACCOUNT-ID.dkr.ecr.REGION.amazonaws.com/aubrisa/andes-api:latest
+
+docker tag `
+  AUBRISA-ACCOUNT-ID.dkr.ecr.REGION.amazonaws.com/aubrisa/andes-api:latest `
+  YOUR-ACCOUNT.dkr.ecr.YOUR-REGION.amazonaws.com/aubrisa/andes-api:latest
+
+docker push `
+  YOUR-ACCOUNT.dkr.ecr.YOUR-REGION.amazonaws.com/aubrisa/andes-api:latest
+
+# Repeat for all services: ui, chat, reporting, load, adjustment-service, murex
+```
+
+## Step 2: Create Parameter File
+
+Copy `app-template.json` to `app-[enviroment].json` and update:
+
+```json
+[
+  {
+    "ParameterKey": "AppName",
+    "ParameterValue": "andes"
+  },
+  {
+    "ParameterKey": "EnvironmentName",
+    "ParameterValue": "[environment]"
+  },
+  {
+    "ParameterKey": "AndesVersion",
+    "ParameterValue": "latest"
+  },
+  {
+    "ParameterKey": "EcrRepositoryUri",
+    "ParameterValue": "YOUR-ACCOUNT.dkr.ecr.YOUR-REGION.amazonaws.com"
+  },
+  {
+    "ParameterKey": "DomainName",
+    "ParameterValue": "your-domain.com"
+  },
+  {
+    "ParameterKey": "HostedZoneId",
+    "ParameterValue": "ROUTE_53_ZONE_ID"
+  },
+  {
+    "ParameterKey": "TenantId",
+    "ParameterValue": "ENTRA_TENANT_ID"
+  },
+  {
+    "ParameterKey": "ClientId",
+    "ParameterValue": "ENTRA_CLIENT_ID"
+  },
+  {
+    "ParameterKey": "AiEndpoint",
+    "ParameterValue": "AI_API_ENDPOINT"
+  },
+  {
+    "ParameterKey": "AdminCidr",
+    "ParameterValue": "YOUR_IP (For database admin connection)/32"
   }
-}'
+]
 ```
 
-1) **Create/prepare the artifacts bucket** (once per region):
-```
-$Bucket = "andes-cfn-templates-eu-west-2"
-aws s3api create-bucket `
-  --bucket $Bucket `
-  --region eu-west-2 `
-  --create-bucket-configuration LocationConstraint=eu-west-2
+## Step 3: Deploy Infrastructure
 
-aws s3api put-bucket-versioning `
-  --bucket $Bucket `
-  --versioning-configuration Status=Enabled
+Bash:
+
+```bash
+
+StackName="andes-app-[env]"
+
+# Package templates
+aws cloudformation package \
+  --template-file cloudFormation/templates/app.yaml \
+  --s3-bucket YOUR-ARTIFACTS-BUCKET \
+  --output-template-file app-packaged.yaml
+
+# Load parameters from file
+params=$(jq -r '.[] | "\(.ParameterKey)=\(.ParameterValue)"' \
+    cloudFormation/params/app-[env].json)
+
+aws cloudformation deploy \
+  --stack-name $StackName \
+  --template-file cloudFormation/templates/app-packaged.yaml \
+  --parameter-overrides $params \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --tags project=andes env=dev \
+  --region REGION
+
+# Deploy stack
+aws cloudformation deploy \
+  --stack-name andes-app-[env] \
+  --template-file app-packaged.yaml \
+  --parameter-overrides file://app-[env].json \
+  --capabilities CAPABILITY_NAMED_IAM
 ```
 
-2) **Validate the root template** (optional but recommended):
-```
-aws cloudformation validate-template `
-  --template-body file://cloudFormation/templates/app.yaml
-```
+PowerShell:
 
-3) **Package nested templates** (uploads artifacts to S3 and rewrites URLs):
-```
-$Bucket = "andes-cfn-templates-eu-west-2"
+```powershell
+$StackName="andes-app-[env]"
+
+# Package templates
 aws cloudformation package `
   --template-file cloudFormation/templates/app.yaml `
-  --s3-bucket $Bucket `
-  --s3-prefix nested `
-  --output-template-file cloudFormation/templates/app-packaged.yaml `
-  --region eu-west-2
-```
+  --s3-bucket YOUR-ARTIFACTS-BUCKET `
+  --output-template-file app-packaged.yaml
 
-4) **Deploy** (parameters read from JSON):
-```
-$StackName = "andes-app-dev"
-$params = Get-Content cloudFormation/params/app-dev.json | ConvertFrom-Json |
-  ForEach-Object { "$( $_.ParameterKey )=$( $_.ParameterValue )" }
+# Load parameters from file
+$params = Get-Content cloudFormation/params/app-[env].json | ConvertFrom-Json | `
+    ForEach-Object { "$( $_.ParameterKey )=$( $_.ParameterValue )" }
 
-$SecretArn = aws secretsmanager describe-secret --secret-id "andes/github-container-registry-auth" --query ARN --output text
-
+# Deploy stack
 aws cloudformation deploy `
-  --stack-name $StackName `
-  --template-file cloudFormation/templates/app-packaged.yaml `
-  --parameter-overrides $params `
-  --capabilities CAPABILITY_NAMED_IAM `
-  --tags project=andes env=dev `
-  --region eu-west-2
+   --stack-name $StackName `
+   --template-file cloudFormation/templates/app-packaged.yaml `
+   --parameter-overrides $params `
+   --capabilities CAPABILITY_NAMED_IAM `
+   --tags project=andes env=dev `
+   --region REGION
 ```
 
-5) **Set rotating secrets (post-deploy convenience script):**
-```
-.\scripts\set-secrets.ps1 -AppName "andes" `
-  -EnvironmentName "dev" `
-  -EntraApiKey "your-entra-key" `
-  -ChatApiKey "your-chat-key" `
-  -AiApiKey "your-ai-key"
-```
+## Step 4: Configure Secrets
 
-6) **Remove the stack** (irreversible; also deletes nested stacks):
-```
-$StackName = "andes-app-dev"
-aws cloudformation delete-stack --stack-name $StackName --region eu-west-2
-aws cloudformation wait stack-delete-complete --stack-name $StackName --region eu-west-2
-```
+Bash:
 
-### Estimate cost
-```
+```bash
+# Set API keys
+aws secretsmanager update-secret \
+  --secret-id andes/[env]/entraid-api-key \
+  --secret-string '{"key": "ENTRA_KEY"}'
 
+aws secretsmanager update-secret \
+  --secret-id andes/[env]/chat-api-key \
+  --secret-string '{"key": "CHAT_KEY"}'
+
+aws secretsmanager update-secret \
+  --secret-id andes/[env]/ai-api-key \
+  --secret-string '{"key": "AI_KEY"}'
 ```
 
-### What Each Stack Delivers
+PowerShell:
 
-- **Network**: VPC, two public subnets, public route table, IGW, security groups for ALB, ECS, RDS.
-- **Storage**: App-scoped S3 bucket, SQS queue, log groups per service (api/chat/ui/report/load/adjustments/murex).
-- **IAM**: Execution and task roles, registry pull permissions, S3/SQS access for tasks.
-- **RDS**: SQL Server SE in multi-AZ disabled, password in Secrets Manager, private subnets, SG locked to ECS only.
-- **ALB**: Internet-facing, HTTP→HTTPS redirect, ACM cert via DNS, path rules for api/chat/ui/reports/load/adjustments/murex, Route 53 A/AAAA aliases.
-- **ECS TaskDefs**: One per service; injects secrets (Entra/chat/AI keys), AI endpoint/model IDs, S3/SQS/Log groups, and LoadBalancer DNS where needed.
-- **ECS Services**: Cluster plus one service per task, wired to target groups, DesiredCount from parameter.
+```powershell
+# Set API keys
+aws secretsmanager update-secret `
+  --secret-id andes/[env]/entraid-api-key `
+  --secret-string '{"key": "ENTRA_KEY"}'
 
-### Operational Notes
+aws secretsmanager update-secret `
+  --secret-id andes/[env]/chat-api-key `
+  --secret-string '{"key": "CHAT_KEY"}'
 
-- Secrets Manager entries created by the root stack are placeholders; rotate them with `set-secrets.ps1` or manually via AWS console/API.
-- Ensure the registry secret ARN has `.dockerconfigjson` for GHCR/ECR; task execution role must read it.
-- Logs are in CloudWatch under `/andes/<env>/<service>`; health checks hit `/health/live` (api/chat/load/adjustments/murex) and `/` (ui/reporting).
-- RDS is non-public; only ECS SG can reach port 1433. Backups retain 7 days by default.
-- ALB enforces HTTPS; HTTP is redirected. DNS validation for ACM requires control of the hosted zone.
+aws secretsmanager update-secret `
+  --secret-id andes/[env]/ai-api-key `
+  --secret-string '{"key": "AI_KEY"}'
+```
+
+## Image Updates
+
+When Aubrisa releases new versions, copy the new images:
+
+```bash
+# Pull new version from Aubrisa ECR
+docker pull \
+  AUBRISA-ACCOUNT-ID.dkr.ecr.REGION.amazonaws.com/aubrisa/andes-api:v1.2.3
+
+# Tag and push to your ECR
+docker tag \
+  AUBRISA-ACCOUNT-ID.dkr.ecr.REGION.amazonaws.com/aubrisa/andes-api:v1.2.3 \
+  YOUR-ACCOUNT.dkr.ecr.YOUR-REGION.amazonaws.com/aubrisa/andes-api:v1.2.3
+
+docker push \
+  YOUR-ACCOUNT.dkr.ecr.YOUR-REGION.amazonaws.com/aubrisa/andes-api:v1.2.3
+
+# Update ImageTag parameter and redeploy
+aws cloudformation deploy \
+  --stack-name andes-app-[env] \
+  --template-file app-packaged.yaml \
+  --parameter-overrides file://app-[env].json ImageTag=v1.2.3 \
+  --capabilities CAPABILITY_NAMED_IAM
+```
+
+## Monitoring
+
+- **Application URL**: `https://your-domain.com`
+- **CloudWatch Logs**: `/andes/[env]/[service]`
+- **RDS Endpoint**: Check stack outputs
