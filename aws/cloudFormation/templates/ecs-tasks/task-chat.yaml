@@ -44,7 +44,7 @@ Resources:
       TaskRoleArn: !Ref TaskRoleArn
       ContainerDefinitions:
         - Name: chat
-          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-chat:${ImageTag}-aws'
+          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-chat:aws-${ImageTag}'
           PortMappings:
             - ContainerPort: 8080
           Environment:

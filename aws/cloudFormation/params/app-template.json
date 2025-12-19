@@ -9,7 +9,7 @@
   },
   {
     "ParameterKey": "ImageTag",
-    "ParameterValue": "latest-aws"
+    "ParameterValue": "latest"
   },
   {
     "ParameterKey": "VpcCidr",

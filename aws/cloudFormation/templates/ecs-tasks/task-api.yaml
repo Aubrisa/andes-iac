@@ -20,6 +20,8 @@ Parameters:
     Type: String
   LoadBalancerDNS:
     Type: String
+  DomainName:
+    Type: String
   LogGroupApi:
     Type: String
   EfsFileSystemId:
@@ -46,13 +48,13 @@ Resources:
       TaskRoleArn: !Ref TaskRoleArn
       ContainerDefinitions:
         - Name: api
-          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-api:${ImageTag}-aws'
+          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-api:aws-${ImageTag}'
           PortMappings:
             - ContainerPort: 8080
           Environment:
-            - Name: ENTRAID_TENANTID
+            - Name: ENTRAID__TENANTID
               Value: !Ref TenantId
-            - Name: ENTRAID_CLIENTID
+            - Name: ENTRAID__CLIENTID
               Value: !Ref ClientId
             - Name: AWSSETTINGS__REGION
               Value: !Ref AWS::Region
@@ -71,15 +73,17 @@ Resources:
             - Name: AISETTINGS__EMBEDDINGMODELID
               Value: !Ref AiEmbeddingModelId
             - Name: UI_BASE_URL
-              Value: !Sub 'http://${LoadBalancerDNS}'
+              Value: !Sub 'https://${DomainName}'
+            - Name: LiveCorsOrigins
+              Value: !Sub 'https://${DomainName},https://api.${DomainName},https://chat-api.${DomainName},http://localhost:3000,http://localhost:8080'
           Secrets:
             - Name: ENTRAID__APISECRET
               ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/entraid-api-key'
             - Name: AISETTINGS__AIAPIKEY
               ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/ai-api-key'
-            - Name: StoreConnectionString
+            - Name: ConnectionStrings__StoreConnectionString
               ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-store-connection'
-            - Name: AppConnectionString
+            - Name: ConnectionStrings__AppConnectionString
               ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-app-connection'
           LogConfiguration:
             LogDriver: awslogs

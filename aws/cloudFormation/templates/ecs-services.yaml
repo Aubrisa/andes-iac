@@ -93,6 +93,62 @@ Resources:
         ContainerName: ui
         ContainerPort: 8080
 
+  ServiceReportingStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: ./ecs-services/service-reporting.yaml
+      Parameters:
+        ClusterName: !Ref EcsCluster
+        DesiredCount: !Ref DesiredCount
+        EcsSecurityGroupId: !Ref EcsSecurityGroupId
+        PublicSubnet1Id: !Ref PublicSubnet1Id
+        PublicSubnet2Id: !Ref PublicSubnet2Id
+        TaskDefArn: !Ref TaskDefReportingArn
+
+  ServiceLoadStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: ./ecs-services/service-load.yaml
+      Parameters:
+        ClusterName: !Ref EcsCluster
+        DesiredCount: !Ref DesiredCount
+        EcsSecurityGroupId: !Ref EcsSecurityGroupId
+        PublicSubnet1Id: !Ref PublicSubnet1Id
+        PublicSubnet2Id: !Ref PublicSubnet2Id
+        TaskDefArn: !Ref TaskDefLoadArn
+
+  ServiceAdjustmentsStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: ./ecs-services/service-adjustments.yaml
+      Parameters:
+        ClusterName: !Ref EcsCluster
+        DesiredCount: !Ref DesiredCount
+        EcsSecurityGroupId: !Ref EcsSecurityGroupId
+        PublicSubnet1Id: !Ref PublicSubnet1Id
+        PublicSubnet2Id: !Ref PublicSubnet2Id
+        TaskDefArn: !Ref TaskDefAdjustmentsArn
+
+  ServiceMurexStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: ./ecs-services/service-murex.yaml
+      Parameters:
+        ClusterName: !Ref EcsCluster
+        DesiredCount: !Ref DesiredCount
+        EcsSecurityGroupId: !Ref EcsSecurityGroupId
+        PublicSubnet1Id: !Ref PublicSubnet1Id
+        PublicSubnet2Id: !Ref PublicSubnet2Id
+        TaskDefArn: !Ref TaskDefMurexArn
+
 
 
 Outputs:

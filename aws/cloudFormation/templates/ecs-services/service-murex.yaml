@@ -12,14 +12,8 @@ Parameters:
     Type: String
   PublicSubnet2Id:
     Type: String
-  TargetGroupArn:
-    Type: String
   TaskDefArn:
     Type: String
-  ContainerName:
-    Type: String
-  ContainerPort:
-    Type: Number
 
 Resources:
   ServiceMurex:
@@ -35,10 +29,7 @@ Resources:
           SecurityGroups: [!Ref EcsSecurityGroupId]
           Subnets: [!Ref PublicSubnet1Id, !Ref PublicSubnet2Id]
       TaskDefinition: !Ref TaskDefArn
-      LoadBalancers:
-        - ContainerName: !Ref ContainerName
-          ContainerPort: !Ref ContainerPort
-          TargetGroupArn: !Ref TargetGroupArn
+
 
 Outputs:
   ServiceName:

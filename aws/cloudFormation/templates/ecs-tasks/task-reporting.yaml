@@ -34,7 +34,7 @@ Resources:
       TaskRoleArn: !Ref TaskRoleArn
       ContainerDefinitions:
         - Name: report
-          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-reporting:${ImageTag}-aws'
+          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-reporting:aws-${ImageTag}'
           PortMappings:
             - ContainerPort: 8080
           Environment:
@@ -43,7 +43,7 @@ Resources:
             - Name: REPORTSETTINGS__REPORTPATH
               Value: /mnt/shared/reports
           Secrets:
-            - Name: StoreConnectionString
+            - Name: ConnectionStrings__StoreConnectionString
               ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-reporting-store-connection'
           LogConfiguration:
             LogDriver: awslogs

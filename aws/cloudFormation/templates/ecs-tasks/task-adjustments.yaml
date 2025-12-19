@@ -30,14 +30,14 @@ Resources:
       TaskRoleArn: !Ref TaskRoleArn
       ContainerDefinitions:
         - Name: adjustments
-          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-adjustment-service:${ImageTag}-aws'
+          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-adjustment-service:aws-${ImageTag}'
           PortMappings:
             - ContainerPort: 8080
           Environment:
             - Name: AWSSETTINGS__REGION
               Value: !Ref AWS::Region
           Secrets:
-            - Name: StoreConnectionString
+            - Name: ConnectionStrings__StoreConnectionString
               ValueFrom: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-adjustments-connection'
           LogConfiguration:
             LogDriver: awslogs

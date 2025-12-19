@@ -85,6 +85,7 @@ Resources:
         TaskExecutionRoleArn: !Ref TaskExecutionRoleArn
         TaskRoleArn: !Ref ApiTaskRoleArn
         LoadBalancerDNS: !Ref LoadBalancerDNS
+        DomainName: !Ref DomainName
         LogGroupApi: !Ref LogGroupApi
         AiEndpoint: !Ref AiEndpoint
         AiChatModelId: !Ref AiChatModelId

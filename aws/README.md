@@ -129,7 +129,7 @@ graph TB
 ### Prerequisites
 
 - AWS CLI configured with permissions for CloudFormation, S3, ECS, RDS, IAM, Route 53, ACM, and Secrets Manager.
-- A private ECR.
+- A private ECR (Elastic Container Registry).
 - A public hosted zone in Route 53 containing `DomainName`.
 - PowerShell (scripts use backticks for line continuation).
 
@@ -142,7 +142,7 @@ graph TB
 
 ## Step 1: Copy Container Images
 
-Aubrisa will provide you with read access to their ECR repository <code class="copyable">AUBRISA-ACCOUNT-ID.dkr.ecr.REGION.amazonaws.com</code><button class="copy-button" onclick="navigator.clipboard.writeText('AUBRISA-ACCOUNT-ID.dkr.ecr.REGION.amazonaws.com')">Copy</button>
+Aubrisa will provide you with read access to their ECR repository<code class="copyable">AUBRISA-ACCOUNT-ID.dkr.ecr.REGION.amazonaws.com</code>
 
 Copy the images to your ECR:
 
