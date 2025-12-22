@@ -161,11 +161,11 @@ aws ecr get-login-password --region YOUR-REGION | \
 # Create repositories in your ECR
 aws ecr create-repository --repository-name aubrisa/andes-api
 aws ecr create-repository --repository-name aubrisa/andes-ui
-aws ecr create-repository --repository-name aubrisa/andes-chat
+aws ecr create-repository --repository-name aubrisa/andes-chat-api
 aws ecr create-repository --repository-name aubrisa/andes-reporting
 aws ecr create-repository --repository-name aubrisa/andes-load
 aws ecr create-repository --repository-name aubrisa/andes-adjustment-service
-aws ecr create-repository --repository-name aubrisa/andes-murex
+aws ecr create-repository --repository-name aubrisa/andes-murex-calculation-service
 
 # Pull and push images
 docker pull \
@@ -231,7 +231,7 @@ Copy `app-template.json` to `app-[enviroment].json` and update:
     "ParameterValue": "[environment]"
   },
   {
-    "ParameterKey": "AndesVersion",
+    "ParameterKey": "ImageTag",
     "ParameterValue": "latest"
   },
   {
@@ -239,12 +239,48 @@ Copy `app-template.json` to `app-[enviroment].json` and update:
     "ParameterValue": "YOUR-ACCOUNT.dkr.ecr.YOUR-REGION.amazonaws.com"
   },
   {
-    "ParameterKey": "DomainName",
-    "ParameterValue": "your-domain.com"
+    "ParameterKey": "VpcCidr",
+    "ParameterValue": "10.0.0.0/16"
   },
   {
-    "ParameterKey": "HostedZoneId",
-    "ParameterValue": "ROUTE_53_ZONE_ID"
+    "ParameterKey": "PublicSubnet1Cidr",
+    "ParameterValue": "10.0.1.0/24"
+  },
+  {
+    "ParameterKey": "PublicSubnet2Cidr",
+    "ParameterValue": "10.0.2.0/24"
+  },
+  {
+    "ParameterKey": "DbUsername",
+    "ParameterValue": "dbadmin"
+  },
+  {
+    "ParameterKey": "DbInstanceClass",
+    "ParameterValue": "db.m5.large"
+  },
+  {
+    "ParameterKey": "DbAllocatedStorage",
+    "ParameterValue": "100"
+  },
+  {
+    "ParameterKey": "DesiredCount",
+    "ParameterValue": "1"
+  },
+  {
+    "ParameterKey": "BotAppId",
+    "ParameterValue": "BOT_APP_ID"
+  },
+  {
+    "ParameterKey": "BotTenantId",
+    "ParameterValue": "BOT_TENANT_ID"
+  },
+  {
+    "ParameterKey": "BotAppType",
+    "ParameterValue": "SingleTenant"
+  },
+  {
+    "ParameterKey": "BotOAuthConnectionName",
+    "ParameterValue": "Azure AD"
   },
   {
     "ParameterKey": "TenantId",
@@ -259,8 +295,52 @@ Copy `app-template.json` to `app-[enviroment].json` and update:
     "ParameterValue": "AI_API_ENDPOINT"
   },
   {
+    "ParameterKey": "AiChatModelId",
+    "ParameterValue": "gpt-4.1"
+  },
+  {
+    "ParameterKey": "AiEmbeddingModelId",
+    "ParameterValue": "text-embedding-ada-002"
+  },
+  {
+    "ParameterKey": "DomainName",
+    "ParameterValue": "your-domain.com"
+  },
+  {
+    "ParameterKey": "HostedZoneId",
+    "ParameterValue": "ROUTE_53_ZONE_ID"
+  },
+  {
+    "ParameterKey": "LogRetentionDays",
+    "ParameterValue": "7"
+  },
+  {
     "ParameterKey": "AdminCidr",
-    "ParameterValue": "YOUR_IP (For database admin connection)/32"
+    "ParameterValue": "YOUR_IP/32"
+  },
+  {
+    "ParameterKey": "EnableECSExec",
+    "ParameterValue": "false"
+  },
+  {
+    "ParameterKey": "NotificationFromEmailAddress",
+    "ParameterValue": "andes-noreply@your-domain.com"
+  },
+  {
+    "ParameterKey": "NotificationEnabled",
+    "ParameterValue": "true"
+  },
+  {
+    "ParameterKey": "NotificationFromName",
+    "ParameterValue": "Aubrisa"
+  },
+  {
+    "ParameterKey": "NotificationEmailEnabled",
+    "ParameterValue": "true"
+  },
+  {
+    "ParameterKey": "NotificationTeamsEnabled",
+    "ParameterValue": "true"
   }
 ]
 ```
@@ -335,8 +415,8 @@ aws secretsmanager update-secret \
   --secret-string '{"key": "ENTRA_KEY"}'
 
 aws secretsmanager update-secret \
-  --secret-id andes/[env]/chat-api-key \
-  --secret-string '{"key": "CHAT_KEY"}'
+  --secret-id andes/[env]/bot-api-key \
+  --secret-string '{"key": "BOT_API_KEY"}'
 
 aws secretsmanager update-secret \
   --secret-id andes/[env]/ai-api-key \
@@ -352,7 +432,7 @@ aws secretsmanager update-secret `
   --secret-string '{"key": "ENTRA_KEY"}'
 
 aws secretsmanager update-secret `
-  --secret-id andes/[env]/chat-api-key `
+  --secret-id andes/[env]/bot-api-key `
   --secret-string '{"key": "CHAT_KEY"}'
 
 aws secretsmanager update-secret `
