@@ -41,6 +41,15 @@ Parameters:
   DbAllocatedStorage:
     Type: Number
     Default: 100
+  DbEngine:
+    Type: String
+    Default: sqlserver-ex
+    AllowedValues: [sqlserver-ex, sqlserver-se, sqlserver-ee]
+    Description: SQL Server engine type
+  DbEngineVersion:
+    Type: String
+    Default: '15.00.4322.2.v1'
+    Description: SQL Server engine version
   DesiredCount:
     Type: Number
     Default: 1
@@ -176,6 +185,8 @@ Resources:
         DbUsername: !Ref DbUsername
         DbInstanceClass: !Ref DbInstanceClass
         DbAllocatedStorage: !Ref DbAllocatedStorage
+        DbEngine: !Ref DbEngine
+        DbEngineVersion: !Ref DbEngineVersion
         PublicSubnet1Id: !GetAtt NetworkStack.Outputs.PublicSubnet1Id
         PublicSubnet2Id: !GetAtt NetworkStack.Outputs.PublicSubnet2Id
         RdsSecurityGroupId: !GetAtt NetworkStack.Outputs.RdsSecurityGroupId

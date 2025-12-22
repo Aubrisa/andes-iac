@@ -6,9 +6,9 @@ Parameters:
     Type: String
   EnvironmentName:
     Type: String
-  S3BucketArn:
-    Type: String
   SqsQueueArn:
+    Type: String
+  EfsFileSystemId:
     Type: String
 
 Resources:
@@ -33,12 +33,7 @@ Resources:
                   - ssm:GetParameter
                 Resource:
                   - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-load-*'
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:PutObject
-                  - s3:DeleteObject
-                Resource: !Sub '${S3BucketArn}/*'
+
               - Effect: Allow
                 Action:
                   - sqs:SendMessage
@@ -63,7 +58,7 @@ Resources:
                   - elasticfilesystem:ClientMount
                   - elasticfilesystem:ClientWrite
                   - elasticfilesystem:ClientRootAccess
-                Resource: '*'
+                Resource: !Sub 'arn:${AWS::Partition}:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:file-system/${EfsFileSystemId}'
               - Effect: Allow
                 Action:
                   - sns:GetTopicAttributes
@@ -77,14 +72,14 @@ Resources:
               - Effect: Allow
                 Action:
                   - sns:ListTopics
-                Resource: '*'
+                Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:*'
               - Effect: Allow
                 Action:
                   - ssmmessages:CreateControlChannel
                   - ssmmessages:CreateDataChannel
                   - ssmmessages:OpenControlChannel
                   - ssmmessages:OpenDataChannel
-                Resource: '*'
+                Resource: !Sub 'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:instance/*'
 
 Outputs:
   LoadTaskRoleArn:

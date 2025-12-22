@@ -19,7 +19,7 @@ Resources:
   ServiceMurex:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: !Sub '${ClusterName}-murex'
+      ServiceName: !Sub '${ClusterName}-murex-service'
       Cluster: !Ref ClusterName
       DesiredCount: !Ref DesiredCount
       LaunchType: FARGATE

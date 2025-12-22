@@ -132,6 +132,8 @@ Resources:
               ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-store-connection'
             - Name: ConnectionStrings__AppConnectionString
               ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-app-connection'
+            - Name: ConnectionStrings__SecurityConnectionString
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-security-connection'
           LogConfiguration:
             LogDriver: awslogs
             Options:

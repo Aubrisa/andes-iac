@@ -28,12 +28,12 @@ Resources:
                 Action:
                   - ssm:GetParameter
                 Resource:
-                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/reporting-service/adjustments-connection'
+                  - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/reporting-service/adjustments-connection'
               - Effect: Allow
                 Action:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: '*'
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/andes/${EnvironmentName}/adjustments*'
               - Effect: Allow
                 Action:
                   - sqs:SetQueueAttributes
@@ -47,7 +47,7 @@ Resources:
                   - sqs:PurgeQueue
                   - sqs:DeleteQueue
                   - sqs:TagQueue
-                Resource: !Sub 'arn:aws:sqs:*:${AWS::AccountId}:*'
+                Resource: !Sub 'arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AppName}-${EnvironmentName}-*'
               - Effect: Allow
                 Action:
                   - sns:GetTopicAttributes
@@ -57,7 +57,7 @@ Resources:
                   - sns:CreateTopic
                   - sns:Publish
                   - sns:Subscribe
-                Resource: !Sub 'arn:aws:sns:*:${AWS::AccountId}:*'
+                Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${AppName}-${EnvironmentName}-*'
               - Effect: Allow
                 Action:
                   - sns:ListTopics

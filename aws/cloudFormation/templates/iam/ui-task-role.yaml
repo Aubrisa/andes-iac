@@ -1,6 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: UI Task Role for Aubrisa Andes
 
+Parameters:
+  EnvironmentName:
+    Type: String
+
 Resources:
   UiTaskRole:
     Type: AWS::IAM::Role
@@ -22,7 +26,7 @@ Resources:
                 Action:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: '*'
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/andes/${EnvironmentName}/ui*'
 
 Outputs:
   UiTaskRoleArn:

@@ -36,6 +36,14 @@
     "ParameterValue": "100"
   },
   {
+    "ParameterKey": "DbEngine",
+    "ParameterValue": "sqlserver-se"
+  },
+  {
+    "ParameterKey": "DbEngineVersion",
+    "ParameterValue": "15.00.4322.2.v1"
+  },
+  {
     "ParameterKey": "DesiredCount",
     "ParameterValue": "1"
   },

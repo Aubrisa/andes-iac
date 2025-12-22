@@ -33,7 +33,7 @@ Resources:
                 Action:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: '*'
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/andes/${EnvironmentName}/murex*'
               - Effect: Allow
                 Action:
                   - sqs:SetQueueAttributes
@@ -47,7 +47,7 @@ Resources:
                   - sqs:PurgeQueue
                   - sqs:DeleteQueue
                   - sqs:TagQueue
-                Resource: !Sub 'arn:aws:sqs:*:${AWS::AccountId}:*'
+                Resource: !Sub 'arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AppName}-${EnvironmentName}-*'
               - Effect: Allow
                 Action:
                   - sns:GetTopicAttributes
@@ -57,11 +57,11 @@ Resources:
                   - sns:CreateTopic
                   - sns:Publish
                   - sns:Subscribe
-                Resource: !Sub 'arn:aws:sns:*:${AWS::AccountId}:*'
+                Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${AppName}-${EnvironmentName}-*'
               - Effect: Allow
                 Action:
                   - sns:ListTopics
-                Resource: '*'
+                Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:*'
 
 Outputs:
   MurexTaskRoleArn:

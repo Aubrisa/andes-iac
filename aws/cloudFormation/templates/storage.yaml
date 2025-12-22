@@ -61,18 +61,6 @@ Resources:
           OwnerUid: "1000"
           Permissions: "0755"
 
-  S3Bucket:
-    Type: AWS::S3::Bucket
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
-    Properties:
-      BucketName: !Sub '${AppName}-${EnvironmentName}-storage'
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-
   SqsQueue:
     Type: AWS::SQS::Queue
     DeletionPolicy: Delete
@@ -132,10 +120,6 @@ Resources:
       RetentionInDays: !Ref LogRetentionDays
 
 Outputs:
-  S3BucketName:
-    Value: !Ref S3Bucket
-  S3BucketArn:
-    Value: !GetAtt S3Bucket.Arn
   SqsQueueUrl:
     Value: !Ref SqsQueue
   SqsQueueArn:

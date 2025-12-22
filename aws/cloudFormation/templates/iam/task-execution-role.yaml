@@ -25,9 +25,8 @@ Resources:
                   - ssm:GetParameters
                   - ssm:GetParameter
                 Resource:
-                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/andes/*'
-                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/andes-*'
-
+                  - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/andes/*'
+                  - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/andes-*'
 
 Outputs:
   TaskExecutionRoleArn:

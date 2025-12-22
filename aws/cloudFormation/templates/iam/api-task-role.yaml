@@ -6,7 +6,7 @@ Parameters:
     Type: String
   EnvironmentName:
     Type: String
-  S3BucketArn:
+  EfsFileSystemId:
     Type: String
 
 Resources:
@@ -36,23 +36,19 @@ Resources:
                   - !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/ai-api-key*'
                   - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-store-connection'
                   - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-app-connection'
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:PutObject
-                  - s3:DeleteObject
-                Resource: !Sub '${S3BucketArn}/*'
+                  - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-security-connection'
+
               - Effect: Allow
                 Action:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: '*'
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/andes/${EnvironmentName}/api*'
               - Effect: Allow
                 Action:
                   - elasticfilesystem:ClientMount
                   - elasticfilesystem:ClientWrite
                   - elasticfilesystem:ClientRootAccess
-                Resource: '*'
+                Resource: !Sub 'arn:${AWS::Partition}:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:file-system/${EfsFileSystemId}'
               - Effect: Allow
                 Action:
                   - sqs:SetQueueAttributes
@@ -66,7 +62,7 @@ Resources:
                   - sqs:PurgeQueue
                   - sqs:DeleteQueue
                   - sqs:TagQueue
-                Resource: !Sub 'arn:${AWS::Partition}:sqs:*:${AWS::AccountId}:*'
+                Resource: !Sub 'arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AppName}-${EnvironmentName}-*'
               - Effect: Allow
                 Action:
                   - sns:GetTopicAttributes

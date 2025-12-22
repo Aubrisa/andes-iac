@@ -12,8 +12,6 @@ Parameters:
 
   SqsQueueArn:
     Type: String
-  S3BucketArn:
-    Type: String
 
 Resources:
   TaskExecutionRoleStack:
@@ -29,7 +27,6 @@ Resources:
       Parameters:
         AppName: !Ref AppName
         EnvironmentName: !Ref EnvironmentName
-        S3BucketArn: !Ref S3BucketArn
 
   ChatTaskRoleStack:
     Type: AWS::CloudFormation::Stack
@@ -51,7 +48,6 @@ Resources:
       Parameters:
         AppName: !Ref AppName
         EnvironmentName: !Ref EnvironmentName
-        S3BucketArn: !Ref S3BucketArn
 
   LoadTaskRoleStack:
     Type: AWS::CloudFormation::Stack
@@ -60,7 +56,6 @@ Resources:
       Parameters:
         AppName: !Ref AppName
         EnvironmentName: !Ref EnvironmentName
-        S3BucketArn: !Ref S3BucketArn
         SqsQueueArn: !Ref SqsQueueArn
 
   AdjustmentsTaskRoleStack:

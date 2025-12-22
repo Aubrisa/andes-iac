@@ -6,7 +6,7 @@ Parameters:
     Type: String
   EnvironmentName:
     Type: String
-  S3BucketArn:
+  EfsFileSystemId:
     Type: String
 
 Resources:
@@ -30,25 +30,20 @@ Resources:
                 Action:
                   - ssm:GetParameter
                 Resource:
-                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-reporting-*'
-                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-adjustments-*'
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:PutObject
-                  - s3:DeleteObject
-                Resource: !Sub '${S3BucketArn}/*'
+                  - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-reporting-*'
+                  - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-adjustments-*'
+
               - Effect: Allow
                 Action:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: '*'
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/andes/${EnvironmentName}/report*'
               - Effect: Allow
                 Action:
                   - elasticfilesystem:ClientMount
                   - elasticfilesystem:ClientWrite
                   - elasticfilesystem:ClientRootAccess
-                Resource: '*'
+                Resource: !Sub 'arn:${AWS::Partition}:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:file-system/${EfsFileSystemId}'
               - Effect: Allow
                 Action:
                   - sqs:SetQueueAttributes
@@ -62,7 +57,7 @@ Resources:
                   - sqs:PurgeQueue
                   - sqs:DeleteQueue
                   - sqs:TagQueue
-                Resource: !Sub 'arn:aws:sqs:*:${AWS::AccountId}:*'
+                Resource: !Sub 'arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AppName}-${EnvironmentName}-*'
               - Effect: Allow
                 Action:
                   - sns:GetTopicAttributes
@@ -72,18 +67,18 @@ Resources:
                   - sns:CreateTopic
                   - sns:Publish
                   - sns:Subscribe
-                Resource: !Sub 'arn:aws:sns:*:${AWS::AccountId}:*'
+                Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${AppName}-${EnvironmentName}-*'
               - Effect: Allow
                 Action:
                   - sns:ListTopics
-                Resource: '*'
+                Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:*'
               - Effect: Allow
                 Action:
                   - ssmmessages:CreateControlChannel
                   - ssmmessages:CreateDataChannel
                   - ssmmessages:OpenControlChannel
                   - ssmmessages:OpenDataChannel
-                Resource: '*'
+                Resource: !Sub 'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:instance/*'
 
 Outputs:
   ReportingTaskRoleArn:
