@@ -26,7 +26,7 @@
     "tenantId": {
       "value": "[Entra App Registration Tenant Id]"
     },
-    "chatAppId": {
+    "BotAppId": {
       "value": "TODO"
     },
     "databasePassword": {

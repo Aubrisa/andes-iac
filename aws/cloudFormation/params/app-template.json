@@ -27,7 +27,6 @@
     "ParameterKey": "DbUsername",
     "ParameterValue": "dbadmin"
   },
-
   {
     "ParameterKey": "DbInstanceClass",
     "ParameterValue": "db.m5.large"
@@ -41,8 +40,16 @@
     "ParameterValue": "1"
   },
   {
-    "ParameterKey": "ChatAppId",
-    "ParameterValue": "CHAT_APP_ID"
+    "ParameterKey": "BotAppId",
+    "ParameterValue": "BOT_APP_ID"
+  },
+  {
+    "ParameterKey": "BotTenantId",
+    "ParameterValue": "BOT_TENANT_ID"
+  },
+  {
+    "ParameterKey": "BotAppType",
+    "ParameterValue": "SingleTenant"
   },
   {
     "ParameterKey": "TenantId",
@@ -53,17 +60,36 @@
     "ParameterValue": "CLIENT_ID"
   },
   {
-    "ParameterKey": "ChatOAuthConnectionName",
+    "ParameterKey": "BotOAuthConnectionName",
     "ParameterValue": "Azure AD"
   },
-
   {
     "ParameterKey": "AiEndpoint",
     "ParameterValue": "AI_ENDPOINT"
   },
   {
     "ParameterKey": "AiChatModelId",
-    "ParameterValue": "gpt4.1"
+    "ParameterValue": "gpt-4.1"
+  },
+    {
+    "ParameterKey": "NotificationFromEmailAddress",
+    "ParameterValue": "andes-noreply@domain.com"
+  },
+  {
+    "ParameterKey": "NotificationEnabled",
+    "ParameterValue": "true"
+  },
+  {
+    "ParameterKey": "NotificationFromName",
+    "ParameterValue": "Aubrisa"
+  },
+  {
+    "ParameterKey": "NotificationEmailEnabled",
+    "ParameterValue": "true"
+  },
+  {
+    "ParameterKey": "NotificationTeamsEnabled",
+    "ParameterValue": "true"
   },
   {
     "ParameterKey": "AiEmbeddingModelId",
@@ -80,5 +106,9 @@
   {
     "ParameterKey": "LogRetentionDays",
     "ParameterValue": "7"
+  },
+  {
+    "ParameterKey": "EnableECSExec",
+    "ParameterValue": "false"
   }
 ]

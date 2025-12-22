@@ -6,11 +6,11 @@ param registryPassword string
 param appServicePlanId string
 param serviceBusConnectionString string
 param appInsightsConnectionString string
-param chatAppId string
+param BotAppId string
 param tenantId string
 @secure()
 param chatApiKey string
-param chatOAuthConnectionName string
+param BotOAuthConnectionName string
 @secure()
 param aiApiKey string
 param aiEndpoint string
@@ -68,7 +68,7 @@ resource chatApiApp 'Microsoft.Web/sites@2021-01-01' = {
         }
         {
           name: 'MicrosoftAppId'
-          value: chatAppId
+          value: BotAppId
         }
         {
           name: 'MicrosoftAppTenantId'
@@ -80,7 +80,7 @@ resource chatApiApp 'Microsoft.Web/sites@2021-01-01' = {
         }
         {
           name: 'CHATSETTINGS__AUTHENTICATIONCONFIGNAME'
-          value: chatOAuthConnectionName
+          value: BotOAuthConnectionName
         }
         {
           name: 'CHATSETTINGS__AIAPIKEY'

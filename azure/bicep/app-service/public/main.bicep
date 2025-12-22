@@ -51,7 +51,7 @@ param chatApiKey string
 param clientId string
 param tenantId string
 
-param chatAppId string
+param BotAppId string
 
 param dnsZone string
 
@@ -103,7 +103,7 @@ var serviceBusName = toLower('service-bus-${appName}')
 
 var chatApiAppName = toLower('app-service-${appName}-chat-api')
 
-var chatOAuthConnectionName = 'Azure AD'
+var BotOAuthConnectionName = 'Azure AD'
 
 var apiUrl = 'https://api.${appName}.${dnsZone}'
 
@@ -224,10 +224,10 @@ module chatApiApp './apps/chat-api-app.bicep' = {
     appServicePlanId: appServicePlan.id
     serviceBusConnectionString: serviceBusConnectionString
     appInsightsConnectionString: logging.outputs.appInsightsConnectionString
-    chatAppId: chatAppId
+    BotAppId: BotAppId
     tenantId: tenantId
     chatApiKey: chatApiKey
-    chatOAuthConnectionName: chatOAuthConnectionName
+    BotOAuthConnectionName: BotOAuthConnectionName
     aiApiKey: aiApiKey
     aiEndpoint: aiEndpoint
     aiSearchApiKey: aiSearchApiKey

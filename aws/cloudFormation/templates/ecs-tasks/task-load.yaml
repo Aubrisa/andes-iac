@@ -34,7 +34,7 @@ Resources:
       TaskRoleArn: !Ref TaskRoleArn
       ContainerDefinitions:
         - Name: load
-          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-load:aws-${ImageTag}'
+          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-load-service:aws-${ImageTag}'
           PortMappings:
             - ContainerPort: 8080
           Environment:

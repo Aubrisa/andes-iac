@@ -34,7 +34,7 @@ Resources:
       TaskRoleArn: !Ref TaskRoleArn
       ContainerDefinitions:
         - Name: report
-          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-reporting:aws-${ImageTag}'
+          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-report-engine-service:aws-${ImageTag}'
           PortMappings:
             - ContainerPort: 8080
           Environment:

@@ -16,13 +16,13 @@ Parameters:
     Type: String
   LogGroupChat:
     Type: String
-  ChatAppId:
+  BotAppId:
     Type: String
-  TenantId:
+  BotTenantId:
     Type: String
-  ChatOAuthConnectionName:
+  BotAppType:
     Type: String
-  AiApiKey:
+  BotOAuthConnectionName:
     Type: String
   AiEndpoint:
     Type: String
@@ -44,22 +44,20 @@ Resources:
       TaskRoleArn: !Ref TaskRoleArn
       ContainerDefinitions:
         - Name: chat
-          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-chat:aws-${ImageTag}'
+          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-chat-api:aws-${ImageTag}'
           PortMappings:
             - ContainerPort: 8080
           Environment:
             - Name: AWSSETTINGS__REGION
               Value: !Ref AWS::Region
-            - Name: MicrosoftAppType
-              Value: Singletenant
-            - Name: MicrosoftAppId
-              Value: !Ref ChatAppId
-            - Name: MicrosoftAppTenantId
-              Value: !Ref TenantId
+            - Name: CHATSETTINGS__BOTAPPTYPE
+              Value: !Ref BotAppType
+            - Name: CHATSETTINGS__BOTAPPID
+              Value: !Ref BotAppId
+            - Name: CHATSETTINGS__BOTTENANTID
+              Value: !Ref BotTenantId
             - Name: CHATSETTINGS__AUTHENTICATIONCONFIGNAME
-              Value: !Ref ChatOAuthConnectionName
-            - Name: CHATSETTINGS__AIAPIKEY
-              Value: !Ref AiApiKey
+              Value: !Ref BotOAuthConnectionName
             - Name: CHATSETTINGS__AIENDPOINT
               Value: !Ref AiEndpoint
             - Name: CHATSETTINGS__CHATMODELID
@@ -67,8 +65,10 @@ Resources:
             - Name: CHATSETTINGS__EMBEDDINGMODELID
               Value: !Ref AiEmbeddingModelId
           Secrets:
-            - Name: MicrosoftAppPassword
-              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/chat-api-key'
+            - Name: CHATSETTINGS__BOTAPPKEY
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/bot-api-key'
+            - Name: CHATSETTINGS__AIAPIKEY
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/ai-api-key'
           LogConfiguration:
             LogDriver: awslogs
             Options:

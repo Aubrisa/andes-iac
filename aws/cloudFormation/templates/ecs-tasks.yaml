@@ -27,8 +27,6 @@ Parameters:
     Type: String
   MurexTaskRoleArn:
     Type: String
-  S3BucketName:
-    Type: String
   LoadBalancerDNS:
     Type: String
   DomainName:
@@ -47,15 +45,17 @@ Parameters:
     Type: String
   LogGroupMurex:
     Type: String
-  ChatAppId:
+  BotAppId:
+    Type: String
+  BotTenantId:
+    Type: String
+  BotAppType:
     Type: String
   TenantId:
     Type: String
   ClientId:
     Type: String
-  ChatOAuthConnectionName:
-    Type: String
-  AiApiKey:
+  BotOAuthConnectionName:
     Type: String
   AiEndpoint:
     Type: String
@@ -66,6 +66,21 @@ Parameters:
   EfsFileSystemId:
     Type: String
   EfsAccessPointId:
+    Type: String
+  EnableECSExec:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Enable ECS Exec for container shell access
+  NotificationFromEmailAddress:
+    Type: String
+  NotificationEnabled:
+    Type: String
+  NotificationFromName:
+    Type: String
+  NotificationEmailEnabled:
+    Type: String
+  NotificationTeamsEnabled:
     Type: String
 
 Resources:
@@ -84,7 +99,6 @@ Resources:
         EcrRepositoryUri: !Ref EcrRepositoryUri
         TaskExecutionRoleArn: !Ref TaskExecutionRoleArn
         TaskRoleArn: !Ref ApiTaskRoleArn
-        LoadBalancerDNS: !Ref LoadBalancerDNS
         DomainName: !Ref DomainName
         LogGroupApi: !Ref LogGroupApi
         AiEndpoint: !Ref AiEndpoint
@@ -92,6 +106,16 @@ Resources:
         AiEmbeddingModelId: !Ref AiEmbeddingModelId
         EfsFileSystemId: !Ref EfsFileSystemId
         EfsAccessPointId: !Ref EfsAccessPointId
+        EnableECSExec: !Ref EnableECSExec
+        NotificationEnabled: !Ref NotificationEnabled
+        NotificationFromEmailAddress: !Ref NotificationFromEmailAddress
+        NotificationFromName: !Ref NotificationFromName
+        NotificationEmailEnabled: !Ref NotificationEmailEnabled
+        NotificationTeamsEnabled: !Ref NotificationTeamsEnabled
+        BotAppId: !Ref BotAppId
+        BotTenantId: !Ref BotTenantId
+        BotAppType: !Ref BotAppType
+        BotOAuthConnectionName: !Ref BotOAuthConnectionName
 
   TaskDefChatStack:
     Type: AWS::CloudFormation::Stack
@@ -107,10 +131,10 @@ Resources:
         TaskExecutionRoleArn: !Ref TaskExecutionRoleArn
         TaskRoleArn: !Ref ChatTaskRoleArn
         LogGroupChat: !Ref LogGroupChat
-        ChatAppId: !Ref ChatAppId
-        TenantId: !Ref TenantId
-        ChatOAuthConnectionName: !Ref ChatOAuthConnectionName
-        AiApiKey: !Ref AiApiKey
+        BotAppId: !Ref BotAppId
+        BotTenantId: !Ref BotTenantId
+        BotAppType: !Ref BotAppType
+        BotOAuthConnectionName: !Ref BotOAuthConnectionName
         AiEndpoint: !Ref AiEndpoint
         AiChatModelId: !Ref AiChatModelId
         AiEmbeddingModelId: !Ref AiEmbeddingModelId

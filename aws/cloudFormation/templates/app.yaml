@@ -45,21 +45,24 @@ Parameters:
     Type: Number
     Default: 1
 
-  ChatAppId:
+  BotAppId:
+    Type: String
+  BotTenantId:
+    Type: String
+  BotAppType:
     Type: String
   TenantId:
     Type: String
   ClientId:
     Type: String
-  ChatOAuthConnectionName:
+  BotOAuthConnectionName:
     Type: String
     Default: Azure AD
-
   AiEndpoint:
     Type: String
   AiChatModelId:
     Type: String
-    Default: gpt4.1
+    Default: gpt-4.1
   AiEmbeddingModelId:
     Type: String
     Default: text-embedding-ada-002
@@ -77,6 +80,21 @@ Parameters:
   AdminCidr:
     Type: String
     Description: IP address for admin access to RDS (format x.x.x.x/32)
+  EnableECSExec:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Enable ECS Exec for container shell access
+  NotificationFromEmailAddress:
+    Type: String
+  NotificationEnabled:
+    Type: String
+  NotificationFromName:
+    Type: String
+  NotificationEmailEnabled:
+    Type: String
+  NotificationTeamsEnabled:
+    Type: String
 
 Resources:
   EntraApiKeySecret:
@@ -88,13 +106,13 @@ Resources:
       Description: 'Entra API key for Andes application'
       SecretString: '{"key": "PLACEHOLDER_VALUE"}'
 
-  ChatApiKeySecret:
+  BotApiKeySecret:
     Type: AWS::SecretsManager::Secret
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
     Properties:
-      Name: !Sub '${AppName}/${EnvironmentName}/chat-api-key'
-      Description: 'Chat API key for Andes application'
+      Name: !Sub '${AppName}/${EnvironmentName}/bot-api-key'
+      Description: 'Bot API key for Andes application'
       SecretString: '{"key": "PLACEHOLDER_VALUE"}'
 
   AiApiKeySecret:
@@ -209,7 +227,6 @@ Resources:
         LoadTaskRoleArn: !GetAtt IamStack.Outputs.LoadTaskRoleArn
         AdjustmentsTaskRoleArn: !GetAtt IamStack.Outputs.AdjustmentsTaskRoleArn
         MurexTaskRoleArn: !GetAtt IamStack.Outputs.MurexTaskRoleArn
-        S3BucketName: !GetAtt StorageStack.Outputs.S3BucketName
         LoadBalancerDNS: !GetAtt AlbStack.Outputs.LoadBalancerDNS
         DomainName: !Ref DomainName
         LogGroupApi: !GetAtt StorageStack.Outputs.LogGroupApi
@@ -221,14 +238,21 @@ Resources:
         LogGroupMurex: !GetAtt StorageStack.Outputs.LogGroupMurex
         EfsFileSystemId: !GetAtt StorageStack.Outputs.EfsFileSystemId
         EfsAccessPointId: !GetAtt StorageStack.Outputs.EfsAccessPointId
-        ChatAppId: !Ref ChatAppId
+        BotAppId: !Ref BotAppId
+        BotTenantId: !Ref BotTenantId
+        BotAppType: !Ref BotAppType
         TenantId: !Ref TenantId
         ClientId: !Ref ClientId
-        ChatOAuthConnectionName: !Ref ChatOAuthConnectionName
-        AiApiKey: !Sub '{{resolve:secretsmanager:${AiApiKeySecret}:SecretString:key}}'
+        BotOAuthConnectionName: !Ref BotOAuthConnectionName
         AiEndpoint: !Ref AiEndpoint
         AiChatModelId: !Ref AiChatModelId
         AiEmbeddingModelId: !Ref AiEmbeddingModelId
+        EnableECSExec: !Ref EnableECSExec
+        NotificationFromEmailAddress: !Ref NotificationFromEmailAddress
+        NotificationEnabled: !Ref NotificationEnabled
+        NotificationFromName: !Ref NotificationFromName
+        NotificationEmailEnabled: !Ref NotificationEmailEnabled
+        NotificationTeamsEnabled: !Ref NotificationTeamsEnabled
 
   EcsServicesStack:
     Type: AWS::CloudFormation::Stack
@@ -246,7 +270,6 @@ Resources:
         TgApiArn: !GetAtt AlbStack.Outputs.TgApiArn
         TgChatArn: !GetAtt AlbStack.Outputs.TgChatArn
         TgUiArn: !GetAtt AlbStack.Outputs.TgUiArn
-
         TaskDefApiArn: !GetAtt EcsTasksStack.Outputs.TaskDefApiArn
         TaskDefChatArn: !GetAtt EcsTasksStack.Outputs.TaskDefChatArn
         TaskDefUiArn: !GetAtt EcsTasksStack.Outputs.TaskDefUiArn

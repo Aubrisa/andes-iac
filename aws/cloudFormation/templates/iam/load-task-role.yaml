@@ -45,8 +45,14 @@ Resources:
                   - sqs:ReceiveMessage
                   - sqs:DeleteMessage
                   - sqs:GetQueueAttributes
-                Resource:
-                  - !Ref SqsQueueArn
+                  - sqs:SetQueueAttributes
+                  - sqs:CreateQueue
+                  - sqs:GetQueueUrl
+                  - sqs:ChangeMessageVisibility
+                  - sqs:PurgeQueue
+                  - sqs:DeleteQueue
+                  - sqs:TagQueue
+                Resource: !Sub 'arn:aws:sqs:*:${AWS::AccountId}:*'
               - Effect: Allow
                 Action:
                   - logs:CreateLogStream
@@ -60,16 +66,6 @@ Resources:
                 Resource: '*'
               - Effect: Allow
                 Action:
-                  - sqs:SetQueueAttributes
-                  - sqs:CreateQueue
-                  - sqs:GetQueueUrl
-                  - sqs:ChangeMessageVisibility
-                  - sqs:PurgeQueue
-                  - sqs:DeleteQueue
-                  - sqs:TagQueue
-                Resource: !Sub 'arn:aws:sqs:*:${AWS::AccountId}:*'
-              - Effect: Allow
-                Action:
                   - sns:GetTopicAttributes
                   - sns:ListSubscriptionsByTopic
                   - sns:GetSubscriptionAttributes
@@ -81,6 +77,13 @@ Resources:
               - Effect: Allow
                 Action:
                   - sns:ListTopics
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ssmmessages:CreateControlChannel
+                  - ssmmessages:CreateDataChannel
+                  - ssmmessages:OpenControlChannel
+                  - ssmmessages:OpenDataChannel
                 Resource: '*'
 
 Outputs:

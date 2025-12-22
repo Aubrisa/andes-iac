@@ -62,6 +62,13 @@ Resources:
                 Action:
                   - sns:ListTopics
                 Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ssmmessages:CreateControlChannel
+                  - ssmmessages:CreateDataChannel
+                  - ssmmessages:OpenControlChannel
+                  - ssmmessages:OpenDataChannel
+                Resource: '*'
 
 Outputs:
   AdjustmentsTaskRoleArn:

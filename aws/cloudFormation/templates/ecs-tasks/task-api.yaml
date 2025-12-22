@@ -10,6 +10,14 @@ Parameters:
     Type: String
   ClientId:
     Type: String
+  BotAppId:
+    Type: String
+  BotTenantId:
+    Type: String
+  BotAppType:
+    Type: String
+  BotOAuthConnectionName:
+    Type: String
   ImageTag:
     Type: String
   EcrRepositoryUri:
@@ -17,8 +25,6 @@ Parameters:
   TaskExecutionRoleArn:
     Type: String
   TaskRoleArn:
-    Type: String
-  LoadBalancerDNS:
     Type: String
   DomainName:
     Type: String
@@ -34,6 +40,25 @@ Parameters:
     Type: String
   AiEmbeddingModelId:
     Type: String
+  EnableECSExec:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Enable ECS Exec for container shell access
+  NotificationFromEmailAddress:
+    Type: String
+  NotificationEnabled:
+    Type: String
+  NotificationFromName:
+    Type: String
+  NotificationEmailEnabled:
+    Type: String
+  NotificationTeamsEnabled:
+    Type: String
+
+Conditions:
+  EmailEnabled: !Equals [!Ref NotificationEmailEnabled, "true"]
+  TeamsEnabled: !Equals [!Ref NotificationTeamsEnabled, "true"]
 
 Resources:
   TaskDefApi:
@@ -51,6 +76,8 @@ Resources:
           Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-api:aws-${ImageTag}'
           PortMappings:
             - ContainerPort: 8080
+          LinuxParameters:
+            InitProcessEnabled: !Ref EnableECSExec
           Environment:
             - Name: ENTRAID__TENANTID
               Value: !Ref TenantId
@@ -72,15 +99,35 @@ Resources:
               Value: !Ref AiChatModelId
             - Name: AISETTINGS__EMBEDDINGMODELID
               Value: !Ref AiEmbeddingModelId
+            - Name: NOTIFICATIONSETTINGS__BOTAPPTYPE
+              Value: !Ref BotAppType
+            - Name: NOTIFICATIONSETTINGS__BOTAPPID
+              Value: !Ref BotAppId
+            - Name: NOTIFICATIONSETTINGS__BOTTENANTID
+              Value: !Ref BotTenantId
+            - Name: NOTIFICATIONSETTINGS__AUTHENTICATIONCONFIGNAME
+              Value: !Ref BotOAuthConnectionName
             - Name: UI_BASE_URL
               Value: !Sub 'https://${DomainName}'
             - Name: LiveCorsOrigins
-              Value: !Sub 'https://${DomainName},https://api.${DomainName},https://chat-api.${DomainName},http://localhost:3000,http://localhost:8080'
+              Value: !Sub 'https://${DomainName},https://api.${DomainName},https://chat-api.${DomainName}'
+            - Name: NOTIFICATIONSETTINGS__FROMEMAILADDRESS
+              Value: !Ref NotificationFromEmailAddress
+            - Name: NOTIFICATIONSETTINGS__ISENABLED
+              Value: !Ref NotificationEnabled
+            - Name: NOTIFICATIONSETTINGS__FROMNAME
+              Value: !Ref NotificationFromName
+            - Name: NOTIFICATIONSETTINGS__CHANNELS__0
+              Value: !If [EmailEnabled, "Email", ""]
+            - Name: NOTIFICATIONSETTINGS__CHANNELS__1
+              Value: !If [TeamsEnabled, "Teams", ""]
           Secrets:
             - Name: ENTRAID__APISECRET
               ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/entraid-api-key'
             - Name: AISETTINGS__AIAPIKEY
               ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/ai-api-key'
+            - Name: NOTIFICATIONSETTINGS__BOTAPPKEY
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/bot-api-key'
             - Name: ConnectionStrings__StoreConnectionString
               ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-store-connection'
             - Name: ConnectionStrings__AppConnectionString

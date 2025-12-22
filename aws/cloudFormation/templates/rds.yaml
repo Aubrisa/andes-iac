@@ -188,7 +188,7 @@ Resources:
     Properties:
       Name: !Sub '${AppName}-${EnvironmentName}-adjustments-connection'
       Type: String
-      Value: !Sub 'Server=${RdsInstance.Endpoint.Address},1433;User Id=andes_login_adjustments;Password=TempPassword123!;Database=Andes_Store;Encrypt=true;TrustServerCertificate=true;'
+      Value: !Sub 'Server=${RdsInstance.Endpoint.Address},1433;User Id=andes_login_adjustments_service;Password=TempPassword123!;Database=Andes_Store;Encrypt=true;TrustServerCertificate=true;'
 
   MurexPassword:
     Type: AWS::SecretsManager::Secret
@@ -209,7 +209,7 @@ Resources:
     Properties:
       Name: !Sub '${AppName}-${EnvironmentName}-murex-connection'
       Type: String
-      Value: !Sub 'Server=${RdsInstance.Endpoint.Address},1433;User Id=andes_login_murex;Password=TempPassword123!;Database=Andes_Store;Encrypt=true;TrustServerCertificate=true;'
+      Value: !Sub 'Server=${RdsInstance.Endpoint.Address},1433;User Id=andes_login_murex_service;Password=TempPassword123!;Database=Andes_Store;Encrypt=true;TrustServerCertificate=true;'
 
 Outputs:
   RdsEndpoint:

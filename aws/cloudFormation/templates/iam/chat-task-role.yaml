@@ -29,12 +29,47 @@ Resources:
                   - secretsmanager:GetSecretValue
                   - ssm:GetParameter
                 Resource:
-                  - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/chat-api-key*'
+                  - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/bot-api-key*'
                   - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/ai-api-key*'
               - Effect: Allow
                 Action:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:*'
+              - Effect: Allow
+                Action:
+                  - sqs:SetQueueAttributes
+                  - sqs:ReceiveMessage
+                  - sqs:CreateQueue
+                  - sqs:DeleteMessage
+                  - sqs:SendMessage
+                  - sqs:GetQueueUrl
+                  - sqs:GetQueueAttributes
+                  - sqs:ChangeMessageVisibility
+                  - sqs:PurgeQueue
+                  - sqs:DeleteQueue
+                  - sqs:TagQueue
+                Resource: !Sub 'arn:${AWS::Partition}:sqs:*:${AWS::AccountId}:*'
+              - Effect: Allow
+                Action:
+                  - sns:GetTopicAttributes
+                  - sns:ListSubscriptionsByTopic
+                  - sns:GetSubscriptionAttributes
+                  - sns:SetSubscriptionAttributes
+                  - sns:CreateTopic
+                  - sns:Publish
+                  - sns:Subscribe
+                Resource: !Sub 'arn:${AWS::Partition}:sns:*:${AWS::AccountId}:*'
+              - Effect: Allow
+                Action:
+                  - sns:ListTopics
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ssmmessages:CreateControlChannel
+                  - ssmmessages:CreateDataChannel
+                  - ssmmessages:OpenControlChannel
+                  - ssmmessages:OpenDataChannel
                 Resource: '*'
 
 Outputs:

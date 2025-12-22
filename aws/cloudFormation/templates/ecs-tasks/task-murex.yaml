@@ -30,7 +30,7 @@ Resources:
       TaskRoleArn: !Ref TaskRoleArn
       ContainerDefinitions:
         - Name: murex
-          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-murex:aws-${ImageTag}'
+          Image: !Sub '${EcrRepositoryUri}/aubrisa/andes-murex-calculation-service:aws-${ImageTag}'
           PortMappings:
             - ContainerPort: 8080
           Environment:
