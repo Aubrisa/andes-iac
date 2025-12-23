@@ -28,7 +28,7 @@ Resources:
                 Action:
                   - ssm:GetParameter
                 Resource:
-                  - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/reporting-service/adjustments-connection'
+                  - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}/reporting-service/adjustments-connection'
               - Effect: Allow
                 Action:
                   - logs:CreateLogStream

@@ -10,9 +10,9 @@ Parameters:
     Type: Number
   EcsSecurityGroupId:
     Type: String
-  PublicSubnet1Id:
+  PrivateSubnet1Id:
     Type: String
-  PublicSubnet2Id:
+  PrivateSubnet2Id:
     Type: String
   TgApiArn:
     Type: String
@@ -52,8 +52,8 @@ Resources:
         ClusterName: !Ref EcsCluster
         DesiredCount: !Ref DesiredCount
         EcsSecurityGroupId: !Ref EcsSecurityGroupId
-        PublicSubnet1Id: !Ref PublicSubnet1Id
-        PublicSubnet2Id: !Ref PublicSubnet2Id
+        PrivateSubnet1Id: !Ref PrivateSubnet1Id
+        PrivateSubnet2Id: !Ref PrivateSubnet2Id
         TargetGroupArn: !Ref TgApiArn
         TaskDefArn: !Ref TaskDefApiArn
         ContainerName: api
@@ -69,8 +69,8 @@ Resources:
         ClusterName: !Ref EcsCluster
         DesiredCount: !Ref DesiredCount
         EcsSecurityGroupId: !Ref EcsSecurityGroupId
-        PublicSubnet1Id: !Ref PublicSubnet1Id
-        PublicSubnet2Id: !Ref PublicSubnet2Id
+        PrivateSubnet1Id: !Ref PrivateSubnet1Id
+        PrivateSubnet2Id: !Ref PrivateSubnet2Id
         TargetGroupArn: !Ref TgChatArn
         TaskDefArn: !Ref TaskDefChatArn
         ContainerName: chat
@@ -86,8 +86,8 @@ Resources:
         ClusterName: !Ref EcsCluster
         DesiredCount: !Ref DesiredCount
         EcsSecurityGroupId: !Ref EcsSecurityGroupId
-        PublicSubnet1Id: !Ref PublicSubnet1Id
-        PublicSubnet2Id: !Ref PublicSubnet2Id
+        PrivateSubnet1Id: !Ref PrivateSubnet1Id
+        PrivateSubnet2Id: !Ref PrivateSubnet2Id
         TargetGroupArn: !Ref TgUiArn
         TaskDefArn: !Ref TaskDefUiArn
         ContainerName: ui
@@ -103,8 +103,8 @@ Resources:
         ClusterName: !Ref EcsCluster
         DesiredCount: !Ref DesiredCount
         EcsSecurityGroupId: !Ref EcsSecurityGroupId
-        PublicSubnet1Id: !Ref PublicSubnet1Id
-        PublicSubnet2Id: !Ref PublicSubnet2Id
+        PrivateSubnet1Id: !Ref PrivateSubnet1Id
+        PrivateSubnet2Id: !Ref PrivateSubnet2Id
         TaskDefArn: !Ref TaskDefReportingArn
 
   ServiceLoadStack:
@@ -117,8 +117,8 @@ Resources:
         ClusterName: !Ref EcsCluster
         DesiredCount: !Ref DesiredCount
         EcsSecurityGroupId: !Ref EcsSecurityGroupId
-        PublicSubnet1Id: !Ref PublicSubnet1Id
-        PublicSubnet2Id: !Ref PublicSubnet2Id
+        PrivateSubnet1Id: !Ref PrivateSubnet1Id
+        PrivateSubnet2Id: !Ref PrivateSubnet2Id
         TaskDefArn: !Ref TaskDefLoadArn
 
   ServiceAdjustmentsStack:
@@ -131,8 +131,8 @@ Resources:
         ClusterName: !Ref EcsCluster
         DesiredCount: !Ref DesiredCount
         EcsSecurityGroupId: !Ref EcsSecurityGroupId
-        PublicSubnet1Id: !Ref PublicSubnet1Id
-        PublicSubnet2Id: !Ref PublicSubnet2Id
+        PrivateSubnet1Id: !Ref PrivateSubnet1Id
+        PrivateSubnet2Id: !Ref PrivateSubnet2Id
         TaskDefArn: !Ref TaskDefAdjustmentsArn
 
   ServiceMurexStack:
@@ -145,8 +145,8 @@ Resources:
         ClusterName: !Ref EcsCluster
         DesiredCount: !Ref DesiredCount
         EcsSecurityGroupId: !Ref EcsSecurityGroupId
-        PublicSubnet1Id: !Ref PublicSubnet1Id
-        PublicSubnet2Id: !Ref PublicSubnet2Id
+        PrivateSubnet1Id: !Ref PrivateSubnet1Id
+        PrivateSubnet2Id: !Ref PrivateSubnet2Id
         TaskDefArn: !Ref TaskDefMurexArn
 
 

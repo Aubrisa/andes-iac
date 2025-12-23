@@ -48,6 +48,8 @@ Resources:
           PortMappings:
             - ContainerPort: 8080
           Environment:
+            - Name: ASPNETCORE_ENVIRONMENT
+              Value: !Ref EnvironmentName
             - Name: AWSSETTINGS__REGION
               Value: !Ref AWS::Region
             - Name: CHATSETTINGS__BOTAPPTYPE
@@ -66,9 +68,9 @@ Resources:
               Value: !Ref AiEmbeddingModelId
           Secrets:
             - Name: CHATSETTINGS__BOTAPPKEY
-              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/bot-api-key'
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}/bot-api-key'
             - Name: CHATSETTINGS__AIAPIKEY
-              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/ai-api-key'
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}/ai-api-key'
           LogConfiguration:
             LogDriver: awslogs
             Options:

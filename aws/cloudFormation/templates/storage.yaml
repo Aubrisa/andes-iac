@@ -11,9 +11,9 @@ Parameters:
     Default: 7
     AllowedValues: [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653]
     Description: CloudWatch log retention period in days
-  PublicSubnet1Id:
+  PrivateSubnet1Id:
     Type: String
-  PublicSubnet2Id:
+  PrivateSubnet2Id:
     Type: String
   EfsSecurityGroupId:
     Type: String
@@ -33,17 +33,21 @@ Resources:
 
   SharedMountTargetAz1:
     Type: AWS::EFS::MountTarget
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
     Properties:
       FileSystemId: !Ref SharedFileSystem
-      SubnetId: !Ref PublicSubnet1Id
+      SubnetId: !Ref PrivateSubnet1Id
       SecurityGroups:
         - !Ref EfsSecurityGroupId
 
   SharedMountTargetAz2:
     Type: AWS::EFS::MountTarget
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
     Properties:
       FileSystemId: !Ref SharedFileSystem
-      SubnetId: !Ref PublicSubnet2Id
+      SubnetId: !Ref PrivateSubnet2Id
       SecurityGroups:
         - !Ref EfsSecurityGroupId
 

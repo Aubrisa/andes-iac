@@ -38,6 +38,8 @@ Resources:
           PortMappings:
             - ContainerPort: 8080
           Environment:
+            - Name: ASPNETCORE_ENVIRONMENT
+              Value: !Ref EnvironmentName
             - Name: AWSSETTINGS__REGION
               Value: !Ref AWS::Region
             - Name: REPORTSETTINGS__REPORTPATH

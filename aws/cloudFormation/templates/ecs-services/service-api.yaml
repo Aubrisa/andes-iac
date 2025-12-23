@@ -8,9 +8,9 @@ Parameters:
     Type: Number
   EcsSecurityGroupId:
     Type: String
-  PublicSubnet1Id:
+  PrivateSubnet1Id:
     Type: String
-  PublicSubnet2Id:
+  PrivateSubnet2Id:
     Type: String
   TargetGroupArn:
     Type: String
@@ -31,9 +31,9 @@ Resources:
       LaunchType: FARGATE
       NetworkConfiguration:
         AwsvpcConfiguration:
-          AssignPublicIp: ENABLED
+          AssignPublicIp: DISABLED
           SecurityGroups: [!Ref EcsSecurityGroupId]
-          Subnets: [!Ref PublicSubnet1Id, !Ref PublicSubnet2Id]
+          Subnets: [!Ref PrivateSubnet1Id, !Ref PrivateSubnet2Id]
       TaskDefinition: !Ref TaskDefArn
       LoadBalancers:
         - ContainerName: !Ref ContainerName

@@ -79,6 +79,8 @@ Resources:
           LinuxParameters:
             InitProcessEnabled: !Ref EnableECSExec
           Environment:
+            - Name: ASPNETCORE_ENVIRONMENT
+              Value: !Ref EnvironmentName
             - Name: ENTRAID__TENANTID
               Value: !Ref TenantId
             - Name: ENTRAID__CLIENTID
@@ -123,11 +125,11 @@ Resources:
               Value: !If [TeamsEnabled, "Teams", ""]
           Secrets:
             - Name: ENTRAID__APISECRET
-              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/entraid-api-key'
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}/entraid-api-key'
             - Name: AISETTINGS__AIAPIKEY
-              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/ai-api-key'
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}/ai-api-key'
             - Name: NOTIFICATIONSETTINGS__BOTAPPKEY
-              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/${EnvironmentName}/bot-api-key'
+              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}/bot-api-key'
             - Name: ConnectionStrings__StoreConnectionString
               ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-store-connection'
             - Name: ConnectionStrings__AppConnectionString

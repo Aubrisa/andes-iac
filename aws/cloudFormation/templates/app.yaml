@@ -33,6 +33,12 @@ Parameters:
   PublicSubnet2Cidr:
     Type: String
     Default: 10.0.2.0/24
+  PrivateSubnet1Cidr:
+    Type: String
+    Default: 10.0.3.0/24
+  PrivateSubnet2Cidr:
+    Type: String
+    Default: 10.0.4.0/24
   DbUsername:
     Type: String
   DbInstanceClass:
@@ -145,6 +151,8 @@ Resources:
         VpcCidr: !Ref VpcCidr
         PublicSubnet1Cidr: !Ref PublicSubnet1Cidr
         PublicSubnet2Cidr: !Ref PublicSubnet2Cidr
+        PrivateSubnet1Cidr: !Ref PrivateSubnet1Cidr
+        PrivateSubnet2Cidr: !Ref PrivateSubnet2Cidr
         AdminCidr: !Ref AdminCidr
 
   StorageStack:
@@ -156,8 +164,8 @@ Resources:
       Parameters:
         AppName: !Ref AppName
         EnvironmentName: !Ref EnvironmentName
-        PublicSubnet1Id: !GetAtt NetworkStack.Outputs.PublicSubnet1Id
-        PublicSubnet2Id: !GetAtt NetworkStack.Outputs.PublicSubnet2Id
+        PrivateSubnet1Id: !GetAtt NetworkStack.Outputs.PrivateSubnet1Id
+        PrivateSubnet2Id: !GetAtt NetworkStack.Outputs.PrivateSubnet2Id
         EfsSecurityGroupId: !GetAtt NetworkStack.Outputs.EfsSecurityGroupId
         LogRetentionDays: !Ref LogRetentionDays
 
@@ -171,7 +179,6 @@ Resources:
         AppName: !Ref AppName
         EnvironmentName: !Ref EnvironmentName
         SqsQueueArn: !GetAtt StorageStack.Outputs.SqsQueueArn
-        S3BucketArn: !GetAtt StorageStack.Outputs.S3BucketArn
 
   RdsStack:
     Type: AWS::CloudFormation::Stack
@@ -276,8 +283,8 @@ Resources:
         EnvironmentName: !Ref EnvironmentName
         DesiredCount: !Ref DesiredCount
         EcsSecurityGroupId: !GetAtt NetworkStack.Outputs.EcsSecurityGroupId
-        PublicSubnet1Id: !GetAtt NetworkStack.Outputs.PublicSubnet1Id
-        PublicSubnet2Id: !GetAtt NetworkStack.Outputs.PublicSubnet2Id
+        PrivateSubnet1Id: !GetAtt NetworkStack.Outputs.PrivateSubnet1Id
+        PrivateSubnet2Id: !GetAtt NetworkStack.Outputs.PrivateSubnet2Id
         TgApiArn: !GetAtt AlbStack.Outputs.TgApiArn
         TgChatArn: !GetAtt AlbStack.Outputs.TgChatArn
         TgUiArn: !GetAtt AlbStack.Outputs.TgUiArn
