@@ -125,11 +125,11 @@ Resources:
               Value: !If [TeamsEnabled, "Teams", ""]
           Secrets:
             - Name: ENTRAID__APISECRET
-              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}/entraid-api-key'
+              ValueFrom: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/entraid-api-key:key::'
             - Name: AISETTINGS__AIAPIKEY
-              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}/ai-api-key'
+              ValueFrom: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/ai-api-key:key::'
             - Name: NOTIFICATIONSETTINGS__BOTAPPKEY
-              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}/bot-api-key'
+              ValueFrom: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/bot-api-key:key::'
             - Name: ConnectionStrings__StoreConnectionString
               ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-store-connection'
             - Name: ConnectionStrings__AppConnectionString

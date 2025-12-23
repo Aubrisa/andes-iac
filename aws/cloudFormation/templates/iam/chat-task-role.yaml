@@ -49,7 +49,7 @@ Resources:
                   - sqs:PurgeQueue
                   - sqs:DeleteQueue
                   - sqs:TagQueue
-                Resource: !Sub 'arn:${AWS::Partition}:sqs:*:${AWS::AccountId}:*'
+                Resource: !Sub 'arn:${AWS::Partition}:sqs:*:${AWS::AccountId}:${AppName}-${EnvironmentName}-*'
               - Effect: Allow
                 Action:
                   - sns:GetTopicAttributes
@@ -59,7 +59,7 @@ Resources:
                   - sns:CreateTopic
                   - sns:Publish
                   - sns:Subscribe
-                Resource: !Sub 'arn:${AWS::Partition}:sns:*:${AWS::AccountId}:*'
+                Resource: !Sub 'arn:${AWS::Partition}:sns:*:${AWS::AccountId}:${AppName}-${EnvironmentName}-*'
               - Effect: Allow
                 Action:
                   - sns:ListTopics

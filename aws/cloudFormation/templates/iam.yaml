@@ -12,6 +12,8 @@ Parameters:
 
   SqsQueueArn:
     Type: String
+  EfsFileSystemId:
+    Type: String
 
 Resources:
   TaskExecutionRoleStack:
@@ -20,6 +22,9 @@ Resources:
     UpdateReplacePolicy: Delete
     Properties:
       TemplateURL: iam/task-execution-role.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
 
 
   ApiTaskRoleStack:
@@ -31,6 +36,7 @@ Resources:
       Parameters:
         AppName: !Ref AppName
         EnvironmentName: !Ref EnvironmentName
+        EfsFileSystemId: !Ref EfsFileSystemId
 
   ChatTaskRoleStack:
     Type: AWS::CloudFormation::Stack
@@ -60,6 +66,7 @@ Resources:
       Parameters:
         AppName: !Ref AppName
         EnvironmentName: !Ref EnvironmentName
+        EfsFileSystemId: !Ref EfsFileSystemId
 
   LoadTaskRoleStack:
     Type: AWS::CloudFormation::Stack
@@ -71,6 +78,7 @@ Resources:
         AppName: !Ref AppName
         EnvironmentName: !Ref EnvironmentName
         SqsQueueArn: !Ref SqsQueueArn
+        EfsFileSystemId: !Ref EfsFileSystemId
 
   AdjustmentsTaskRoleStack:
     Type: AWS::CloudFormation::Stack

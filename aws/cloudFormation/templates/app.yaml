@@ -21,7 +21,6 @@ Parameters:
     Default: latest
   EcrRepositoryUri:
     Type: String
-    Default: "221556121332.dkr.ecr.eu-west-2.amazonaws.com"
     Description: ECR repository URI base (without tag)
 
   VpcCidr:
@@ -114,8 +113,8 @@ Parameters:
 Resources:
   EntraApiKeySecret:
     Type: AWS::SecretsManager::Secret
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub '${AppName}/${EnvironmentName}/entraid-api-key'
       Description: 'Entra API key for Andes application'
@@ -123,8 +122,8 @@ Resources:
 
   BotApiKeySecret:
     Type: AWS::SecretsManager::Secret
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub '${AppName}/${EnvironmentName}/bot-api-key'
       Description: 'Bot API key for Andes application'
@@ -132,8 +131,8 @@ Resources:
 
   AiApiKeySecret:
     Type: AWS::SecretsManager::Secret
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub '${AppName}/${EnvironmentName}/ai-api-key'
       Description: 'AI API key for Andes application'
@@ -179,6 +178,7 @@ Resources:
         AppName: !Ref AppName
         EnvironmentName: !Ref EnvironmentName
         SqsQueueArn: !GetAtt StorageStack.Outputs.SqsQueueArn
+        EfsFileSystemId: !GetAtt StorageStack.Outputs.EfsFileSystemId
 
   RdsStack:
     Type: AWS::CloudFormation::Stack

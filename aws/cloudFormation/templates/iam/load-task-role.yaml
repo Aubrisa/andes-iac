@@ -47,7 +47,7 @@ Resources:
                   - sqs:PurgeQueue
                   - sqs:DeleteQueue
                   - sqs:TagQueue
-                Resource: !Sub 'arn:aws:sqs:*:${AWS::AccountId}:*'
+                Resource: !Sub 'arn:aws:sqs:*:${AWS::AccountId}:${AppName}-${EnvironmentName}-*'
               - Effect: Allow
                 Action:
                   - logs:CreateLogStream
@@ -72,7 +72,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - sns:ListTopics
-                Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:*'
+                Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${AppName}-${EnvironmentName}-*'
               - Effect: Allow
                 Action:
                   - ssmmessages:CreateControlChannel

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.8",
+  "id": "4ce11313-574b-48ff-9883-74c75dc3ffff",
+  "packageName": "com.microsoft.teams.extension",
+  "developer": {
+    "name": "Aubrisa Limited",
+    "websiteUrl": "https://www.aubrisa.com",
+    "privacyUrl": "https://www.aubrisa.com/privacy",
+    "termsOfUseUrl": "https://www.aubrisa.com/termofuse"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "#{BotName}",
+    "full": "Aubrisa Andes AI Chat"
+  },
+  "description": {
+    "short": "Chat service for Aubrisa Andes",
+    "full": "Aubrisa Andes Chat provides a way of interacting with the Andes application via an AI chat bot. The chat can be used to perform a variety of activities in the application using the latest AI technologies."
+  },
+  "accentColor": "#FFFFFF",
+  "bots": [
+    {
+      "botId": "#{ClientBotAppId}",
+      "scopes": ["personal"],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "composeExtensions": [],
+  "configurableTabs": [],
+  "staticTabs": [],
+  "permissions": ["identity", "messageTeamMembers"],
+  "validDomains": [ "#{ClientBotApiDomain}", "token.botframework.com" ],
+  "webApplicationInfo": {
+    "id": "#{ClientBotAppId}",
+    "resource": "api://botid-#{ClientBotAppId}"
+  }
+}

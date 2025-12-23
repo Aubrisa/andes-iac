@@ -409,3 +409,5 @@ aws/cloudFormation/templates/app-packaged.yaml
 azure/bicep/app-service/public/parameters/andes-01.parameters.json
 azure/bicep/app-service/public/parameters/andes-02.parameters.json
 aws/COMMANDS.md
+teams/scripts/output/
+teams/scripts/working/

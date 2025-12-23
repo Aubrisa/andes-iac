@@ -1,6 +1,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: ECS Task Execution Role for Aubrisa Andes
 
+Parameters:
+  AppName:
+    Type: String
+  EnvironmentName:
+    Type: String
+
 Resources:
   TaskExecutionRole:
     Type: AWS::IAM::Role
@@ -25,8 +31,14 @@ Resources:
                   - ssm:GetParameters
                   - ssm:GetParameter
                 Resource:
-                  - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/andes/*'
-                  - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/andes-*'
+                  - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}/*'
+                  - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-*'
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/*'
+                  - !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}*'
 
 Outputs:
   TaskExecutionRoleArn:
