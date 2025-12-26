@@ -46,7 +46,7 @@ Resources:
               Value: /mnt/shared/reports
           Secrets:
             - Name: ConnectionStrings__StoreConnectionString
-              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-reporting-store-connection'
+              ValueFrom: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/reporting-service/store-connection:connectionString::'
           LogConfiguration:
             LogDriver: awslogs
             Options:

@@ -40,7 +40,7 @@ Resources:
               Value: !Ref AWS::Region
           Secrets:
             - Name: ConnectionStrings__StoreConnectionString
-              ValueFrom: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-adjustments-connection'
+              ValueFrom: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/adjustments-service/store-connection:connectionString::'
           LogConfiguration:
             LogDriver: awslogs
             Options:

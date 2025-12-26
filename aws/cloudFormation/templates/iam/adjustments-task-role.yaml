@@ -26,9 +26,10 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - ssm:GetParameter
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
                 Resource:
-                  - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}/reporting-service/adjustments-connection'
+                  - !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/adjustments-service/*'
               - Effect: Allow
                 Action:
                   - logs:CreateLogStream
@@ -47,7 +48,7 @@ Resources:
                   - sqs:PurgeQueue
                   - sqs:DeleteQueue
                   - sqs:TagQueue
-                Resource: !Sub 'arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AppName}-${EnvironmentName}-*'
+                Resource: !Sub 'arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AppName}-${EnvironmentName}*'
               - Effect: Allow
                 Action:
                   - sns:GetTopicAttributes
@@ -57,7 +58,7 @@ Resources:
                   - sns:CreateTopic
                   - sns:Publish
                   - sns:Subscribe
-                Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${AppName}-${EnvironmentName}-*'
+                Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${AppName}-${EnvironmentName}*'
               - Effect: Allow
                 Action:
                   - sns:ListTopics

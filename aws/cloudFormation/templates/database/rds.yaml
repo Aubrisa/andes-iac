@@ -1,0 +1,126 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: RDS SQL Server instance for Aubrisa Andes Store/App Databases
+
+Parameters:
+  AppName:
+    Type: String
+  EnvironmentName:
+    Type: String
+  DbUsername:
+    Type: String
+  DbInstanceClass:
+    Type: String
+  DbAllocatedStorage:
+    Type: Number
+  PublicSubnet1Id:
+    Type: String
+  PublicSubnet2Id:
+    Type: String
+  RdsSecurityGroupId:
+    Type: String
+  DbEngine:
+    Type: String
+    Default: sqlserver-ex
+    AllowedValues: [sqlserver-ex, sqlserver-se, sqlserver-ee]
+    Description: SQL Server engine type
+  DbEngineVersion:
+    Type: String
+    Default: '15.00.4322.2.v1'
+    Description: SQL Server engine version
+
+Resources:
+  RdsPasswordSecret:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      Name: !Sub '${AppName}/${EnvironmentName}/rds-password'
+      Description: 'RDS password for Andes database'
+      GenerateSecretString:
+        SecretStringTemplate: '{}'
+        GenerateStringKey: 'password'
+        PasswordLength: 32
+        ExcludeCharacters: '"@/\'
+
+  DbSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupName: !Sub '${AppName}-${EnvironmentName}-rds-subnet-group'
+      DBSubnetGroupDescription: Subnets for RDS
+      SubnetIds:
+        - !Ref PublicSubnet1Id
+        - !Ref PublicSubnet2Id
+
+  RdsInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      DBInstanceIdentifier: !Sub '${AppName}-${EnvironmentName}-sql'
+      Engine: !Ref DbEngine
+      EngineVersion: !Ref DbEngineVersion
+      MasterUsername: !Ref DbUsername
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:${RdsPasswordSecret}:SecretString:password}}'
+      DBInstanceClass: !Ref DbInstanceClass
+      AllocatedStorage: !Ref DbAllocatedStorage
+      StorageEncrypted: true
+      StorageType: gp3
+      MultiAZ: false
+      VPCSecurityGroups:
+        - !Ref RdsSecurityGroupId
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      PubliclyAccessible: true
+      BackupRetentionPeriod: 7
+      LicenseModel: license-included
+
+  ApiCredentialsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: credentials/api.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+        RdsEndpoint: !GetAtt RdsInstance.Endpoint.Address
+
+  LoadCredentialsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: credentials/load.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+        RdsEndpoint: !GetAtt RdsInstance.Endpoint.Address
+
+  ReportingCredentialsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: credentials/reporting.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+        RdsEndpoint: !GetAtt RdsInstance.Endpoint.Address
+
+  AdjustmentsCredentialsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: credentials/adjustments.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+        RdsEndpoint: !GetAtt RdsInstance.Endpoint.Address
+
+  MurexCredentialsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: credentials/murex.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+        RdsEndpoint: !GetAtt RdsInstance.Endpoint.Address
+
+Outputs:
+  RdsEndpoint:
+    Description: RDS endpoint address
+    Value: !GetAtt RdsInstance.Endpoint.Address
+    Export:
+      Name: !Sub '${AWS::StackName}-RdsEndpoint'

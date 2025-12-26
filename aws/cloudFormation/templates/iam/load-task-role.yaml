@@ -30,10 +30,10 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - ssm:GetParameter
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
                 Resource:
-                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-load-*'
-
+                  - !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/load-*'
               - Effect: Allow
                 Action:
                   - sqs:SendMessage
@@ -47,7 +47,7 @@ Resources:
                   - sqs:PurgeQueue
                   - sqs:DeleteQueue
                   - sqs:TagQueue
-                Resource: !Sub 'arn:aws:sqs:*:${AWS::AccountId}:${AppName}-${EnvironmentName}-*'
+                Resource: !Sub 'arn:${AWS::Partition}:sqs:*:${AWS::AccountId}:${AppName}-${EnvironmentName}*'
               - Effect: Allow
                 Action:
                   - logs:CreateLogStream
@@ -68,11 +68,11 @@ Resources:
                   - sns:CreateTopic
                   - sns:Publish
                   - sns:Subscribe
-                Resource: !Sub 'arn:aws:sns:*:${AWS::AccountId}:*'
+                Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${AppName}-${EnvironmentName}*'
               - Effect: Allow
                 Action:
                   - sns:ListTopics
-                Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${AppName}-${EnvironmentName}-*'
+                Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:*'
               - Effect: Allow
                 Action:
                   - ssmmessages:CreateControlChannel

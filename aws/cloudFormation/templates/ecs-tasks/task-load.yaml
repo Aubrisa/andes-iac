@@ -48,9 +48,9 @@ Resources:
               Value: /mnt/shared/load-data
           Secrets:
             - Name: ConnectionStrings__TargetConnectionString
-              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-load-store-connection'
+              ValueFrom: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/load-service/store-connection:connectionString::'
             - Name: ConnectionStrings__AppConnectionString
-              ValueFrom: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AppName}-${EnvironmentName}-load-app-connection'
+              ValueFrom: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/load-service/app-connection:connectionString::'
           LogConfiguration:
             LogDriver: awslogs
             Options:

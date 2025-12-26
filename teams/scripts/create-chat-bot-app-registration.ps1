@@ -43,14 +43,14 @@
     -ApiUrl "https://chat-api.andes.aubrisa.com"
     -DisplayName "Aubrisa Andes Chat Bot - Dev"
 #>
-#Requires -Modules Microsoft.Graph
+
 param(
     [Parameter(Mandatory=$true)][string]$TenantId,
     [Parameter(Mandatory=$true)][string]$Environment,
     [Parameter(Mandatory=$true)][string]$ApiUrl,
     [string]$DisplayName = $null,
     [int]$SecretExpiryYears = 1,
-    [bool]$CopySecretToClipboard = $False
+    [bool]$CopySecretToClipboard = $False,
     [bool]$Connect = $true
 )
 
@@ -333,25 +333,26 @@ try {
         -ForegroundColor DarkCyan
 
     Write-Host "`nSettings Required for Andes configuration:`n"
-    Write-KeyValue "  Tenant Id             : $TenantId"
-    Write-KeyValue "  Client Id (App Id)    : $clientId"
-    Write-KeyValue "  Client Secret Value   : $secretValue" -ValueColor Yellow
-    
-    Write-Host "`nAdditional`n"
-    Write-KeyValue "  Display Name          : $DisplayName"
-    Write-KeyValue "  Application Object Id : $($app.Id)"
-    Write-KeyValue "  Service Principal Id  : $($sp.Id)"
-    Write-KeyValue "  Identifier URI        : $botIdentifierUri"
-    Write-KeyValue "  Access token version  : v2"
+    Write-KeyValue "  Tenant Id (Bot Tenant Id) : $TenantId"
+    Write-KeyValue "  Client Id (Bot App Id)    : $clientId"
+    Write-KeyValue "  Client Secret Value       : $secretValue" -ValueColor Yellow
+        
+    Write-Host "`nAdditional`n"    
+    Write-KeyValue "  Display Name              : $DisplayName"
+    Write-KeyValue "  Application Object Id     : $($app.Id)"
+    Write-KeyValue "  Service Principal Id      : $($sp.Id)"
+    Write-KeyValue "  Identifier URI            : $botIdentifierUri"
+    Write-KeyValue "  Access token version      : v2"
 
 
     if($CopySecretToClipboard) {    
         Set-Clipboard -Value $secretValue
-        Write-Host "`n$([char]0x2713) Client secret has been copied to your clipboard." -ForegroundColor Green
+        Write-Host "`n$([char]0x2713) Client secret has been copied to your clipboard." 
+        ` -ForegroundColor Green
     }
 
-    Write-Host "`nIMPORTANT: The client secret cannot be retrievable later." -ForegroundColor Yellow
-    Write-Host "Store the secret in AWS Secrets Manager at: andes/$Environment/api/config/entraid-api-key"
+    Write-Host "`nIMPORTANT: The client secret cannot be retrieved later." -ForegroundColor Yellow
+    Write-Host "Store the secret in AWS Secrets Manager at: andes/$Environment/api/config/bot-api-key"
 } catch {
     Write-Host "`n$([char]0x274C) Error occurred: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host $_.ScriptStackTrace -ForegroundColor DarkGray
