@@ -19,7 +19,7 @@ Resources:
   ServiceAdjustments:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: !Sub '${ClusterName}-adjustments'
+      ServiceName: !Sub '${ClusterName}-adjustments-service'
       Cluster: !Ref ClusterName
       DesiredCount: !Ref DesiredCount
       LaunchType: FARGATE

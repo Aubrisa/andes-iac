@@ -19,7 +19,7 @@ Resources:
   ServiceLoad:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: !Sub '${ClusterName}-load'
+      ServiceName: !Sub '${ClusterName}-load-service'
       Cluster: !Ref ClusterName
       DesiredCount: !Ref DesiredCount
       LaunchType: FARGATE

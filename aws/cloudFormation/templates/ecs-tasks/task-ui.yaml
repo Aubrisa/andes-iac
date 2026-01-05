@@ -16,10 +16,12 @@ Parameters:
     Type: String
   LogGroupUi:
     Type: String
-  ClientId:
+  ClientIdParameter:
     Type: String
-  TenantId:
+    Description: SSM Parameter name for Client ID
+  TenantIdParameter:
     Type: String
+    Description: SSM Parameter name for Tenant ID
 
 Resources:
   TaskDefUi:
@@ -40,10 +42,11 @@ Resources:
           Environment:
             - Name: ANDES_SETTINGS_API_URL
               Value: !Sub 'https://api.${DomainName}'
+          Secrets:
             - Name: ANDES_SETTINGS_CLIENT_ID
-              Value: !Ref ClientId
+              ValueFrom: !Ref ClientIdParameter
             - Name: ANDES_SETTINGS_TENANT_ID
-              Value: !Ref TenantId
+              ValueFrom: !Ref TenantIdParameter
           LogConfiguration:
             LogDriver: awslogs
             Options:

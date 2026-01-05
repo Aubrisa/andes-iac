@@ -8,9 +8,9 @@ Parameters:
     Type: String
   VpcId:
     Type: String
-  PublicSubnet1Id:
+  PrivateSubnet1Id:
     Type: String
-  PublicSubnet2Id:
+  PrivateSubnet2Id:
     Type: String
   AlbSecurityGroupId:
     Type: String
@@ -26,10 +26,10 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Name: !Sub '${AppName}-${EnvironmentName}-alb'
-      Scheme: internet-facing
+      Scheme: internal
       Subnets:
-        - !Ref PublicSubnet1Id
-        - !Ref PublicSubnet2Id
+        - !Ref PrivateSubnet1Id
+        - !Ref PrivateSubnet2Id
       SecurityGroups:
         - !Ref AlbSecurityGroupId
 

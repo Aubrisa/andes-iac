@@ -18,7 +18,7 @@ Resources:
             Action:
               - sts:AssumeRole
       Policies:
-        - PolicyName: UiAccess
+        - PolicyName: UiPolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:

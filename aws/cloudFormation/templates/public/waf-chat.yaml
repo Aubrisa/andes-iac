@@ -1,0 +1,168 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: WAF Web ACL for Chat API with Microsoft Bot Framework IP restrictions and rate limiting
+
+Parameters:
+  AppName:
+    Type: String
+  EnvironmentName:
+    Type: String
+  RateLimitPerFiveMinutes:
+    Type: Number
+    Default: 2000
+    Description: Maximum requests per 5 minutes from a single IP
+
+Resources:
+  # IP Set for Microsoft Bot Framework IP addresses
+  BotFrameworkIpSet:
+    Type: AWS::WAFv2::IPSet
+    Properties:
+      Name: !Sub '${AppName}-${EnvironmentName}-bot-framework-ips'
+      Scope: REGIONAL
+      IPAddressVersion: IPV4
+      Addresses:
+        # Americas
+        - 13.72.243.10/32
+        - 40.83.178.203/32
+        - 52.161.25.61/32
+        - 52.247.220.191/32
+        - 20.42.6.144/28
+        - 20.42.7.0/26
+        - 40.71.11.80/28
+        # Europe
+        - 51.105.224.32/28
+        - 51.105.224.64/26
+        - 20.50.161.176/28
+        - 20.50.168.128/26
+        # Asia Pacific
+        - 20.195.65.176/28
+        - 20.195.72.0/26
+        - 20.43.120.80/28
+      Description: Microsoft Bot Framework IP addresses
+      Tags:
+        - Key: Name
+          Value: !Sub '${AppName}-${EnvironmentName}-bot-framework-ips'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  # WAF Web ACL
+  ChatWebAcl:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: !Sub '${AppName}-${EnvironmentName}-chat-waf'
+      Scope: REGIONAL
+      DefaultAction:
+        Block: {}
+      Description: WAF for Chat API - allows only Microsoft Bot Framework IPs with rate limiting
+      Rules:
+        # Rule 1: Allow Microsoft Bot Framework IPs
+        - Name: AllowBotFrameworkIPs
+          Priority: 1
+          Statement:
+            IPSetReferenceStatement:
+              Arn: !GetAtt BotFrameworkIpSet.Arn
+          Action:
+            Allow: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: AllowBotFrameworkIPs
+
+        # Rule 2: Rate limiting (even for allowed IPs)
+        - Name: RateLimitRule
+          Priority: 2
+          Statement:
+            RateBasedStatement:
+              Limit: !Ref RateLimitPerFiveMinutes
+              AggregateKeyType: IP
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 429
+                CustomResponseBodyKey: RateLimitExceeded
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: RateLimitRule
+
+        # Rule 3: Block common attack patterns
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 3
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+              ExcludedRules: []
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesCommonRuleSet
+
+        # Rule 4: Block known bad inputs
+        - Name: AWSManagedRulesKnownBadInputsRuleSet
+          Priority: 4
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesKnownBadInputsRuleSet
+
+      CustomResponseBodies:
+        RateLimitExceeded:
+          ContentType: APPLICATION_JSON
+          Content: '{"error":"Rate limit exceeded. Please try again later."}'
+
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub '${AppName}-${EnvironmentName}-chat-waf'
+      Tags:
+        - Key: Name
+          Value: !Sub '${AppName}-${EnvironmentName}-chat-waf'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: Service
+          Value: Chat
+
+  # CloudWatch Log Group for WAF logs
+  WafLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub 'aws-waf-logs-${AppName}-${EnvironmentName}-chat'
+      RetentionInDays: 30
+
+  # WAF Logging Configuration
+  WafLoggingConfiguration:
+    Type: AWS::WAFv2::LoggingConfiguration
+    Properties:
+      ResourceArn: !GetAtt ChatWebAcl.Arn
+      LogDestinationConfigs:
+        - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:aws-waf-logs-${AppName}-${EnvironmentName}-chat'
+      LoggingFilter:
+        DefaultBehavior: KEEP
+        Filters:
+          - Behavior: KEEP
+            Conditions:
+              - ActionCondition:
+                  Action: BLOCK
+            Requirement: MEETS_ANY
+
+Outputs:
+  WebAclArn:
+    Value: !GetAtt ChatWebAcl.Arn
+    Description: ARN of the WAF Web ACL for chat API
+  WebAclId:
+    Value: !GetAtt ChatWebAcl.Id
+    Description: ID of the WAF Web ACL
+  BotFrameworkIpSetArn:
+    Value: !GetAtt BotFrameworkIpSet.Arn
+    Description: ARN of the Bot Framework IP Set (update this when Microsoft publishes new IPs)
+  WafLogGroupName:
+    Value: !Ref WafLogGroup
+    Description: CloudWatch Log Group for WAF logs

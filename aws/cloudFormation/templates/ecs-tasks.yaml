@@ -45,16 +45,20 @@ Parameters:
     Type: String
   LogGroupMurex:
     Type: String
-  BotAppId:
-    Type: String
-  BotTenantId:
-    Type: String
   BotAppType:
     Type: String
-  TenantId:
+  BotAppIdParameter:
     Type: String
-  ClientId:
+    Description: SSM Parameter name for Bot App ID
+  TenantIdParameter:
     Type: String
+    Description: SSM Parameter name for Tenant ID
+  ClientIdParameter:
+    Type: String
+    Description: SSM Parameter name for Client ID
+  BotTenantIdParameter:
+    Type: String
+    Description: SSM Parameter name for Bot Tenant ID
   BotOAuthConnectionName:
     Type: String
   AiEndpoint:
@@ -92,8 +96,8 @@ Resources:
       TemplateURL: ecs-tasks/task-api.yaml
       Parameters:
         AppName: !Ref AppName
-        ClientId: !Ref ClientId
-        TenantId: !Ref TenantId
+        ClientIdParameter: !Ref ClientIdParameter
+        TenantIdParameter: !Ref TenantIdParameter
         EnvironmentName: !Ref EnvironmentName
         ImageTag: !Ref ImageTag
         EcrRepositoryUri: !Ref EcrRepositoryUri
@@ -112,8 +116,8 @@ Resources:
         NotificationFromName: !Ref NotificationFromName
         NotificationEmailEnabled: !Ref NotificationEmailEnabled
         NotificationTeamsEnabled: !Ref NotificationTeamsEnabled
-        BotAppId: !Ref BotAppId
-        BotTenantId: !Ref BotTenantId
+        BotAppIdParameter: !Ref BotAppIdParameter
+        BotTenantIdParameter: !Ref BotTenantIdParameter
         BotAppType: !Ref BotAppType
         BotOAuthConnectionName: !Ref BotOAuthConnectionName
 
@@ -131,8 +135,8 @@ Resources:
         TaskExecutionRoleArn: !Ref TaskExecutionRoleArn
         TaskRoleArn: !Ref ChatTaskRoleArn
         LogGroupChat: !Ref LogGroupChat
-        BotAppId: !Ref BotAppId
-        BotTenantId: !Ref BotTenantId
+        BotAppIdParameter: !Ref BotAppIdParameter
+        BotTenantIdParameter: !Ref BotTenantIdParameter
         BotAppType: !Ref BotAppType
         BotOAuthConnectionName: !Ref BotOAuthConnectionName
         AiEndpoint: !Ref AiEndpoint
@@ -153,8 +157,8 @@ Resources:
         TaskRoleArn: !Ref UiTaskRoleArn
         DomainName: !Ref DomainName
         LogGroupUi: !Ref LogGroupUi
-        ClientId: !Ref ClientId
-        TenantId: !Ref TenantId
+        ClientIdParameter: !Ref ClientIdParameter
+        TenantIdParameter: !Ref TenantIdParameter
 
   TaskDefReportStack:
     Type: AWS::CloudFormation::Stack

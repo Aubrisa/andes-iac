@@ -1,23 +1,29 @@
 ## Andes AWS Deployment Guide
 
+### Quick start
+1. Create Entra ID App Registration
+2. Deploy AWS Stack
+3. Initialize Databases
+4. Start application stack
+
 ```mermaid
 graph TB
     %% External
-    Internet[Internet Users]
-    Route53[Route 53<br/>andes.domain<br/>*.andes.domain]
+    OnPrem[On-Premises Network]
+    TGW[Transit Gateway<br/>Hub VPC Connection]
     
     %% Network Layer
-    subgraph VPC["VPC (10.0.0.0/16)"]
-        subgraph PublicSubnets["Public Subnets"]
-            Subnet1[Public Subnet 1<br/>10.0.1.0/24<br/>AZ-a]
-            Subnet2[Public Subnet 2<br/>10.0.2.0/24<br/>AZ-b]
+    subgraph VPC["Spoke VPC (Existing)"]
+        subgraph PrivateSubnets["Private Subnets"]
+            Subnet1[Private Subnet 1<br/>10.0.10.0/24<br/>AZ-a]
+            Subnet2[Private Subnet 2<br/>10.0.11.0/24<br/>AZ-b]
         end
         
-        IGW[Internet Gateway]
+        Route53Private[Route 53 Private Zone<br/>*.internal.aubrisa.dev]
         
         %% Load Balancer
-        subgraph ALB_SG["ALB Security Group<br/>80, 443 from 0.0.0.0/0"]
-            ALB[Application Load Balancer<br/>andes-env-alb]
+        subgraph ALB_SG["ALB Security Group<br/>80, 443 from 10.0.0.0/8"]
+            ALB[Internal ALB<br/>andes-env-alb]
         end
         
         %% ECS Layer
@@ -55,9 +61,9 @@ graph TB
     ECR[ECR<br/>Container Images]
     
     %% Connections
-    Internet --> Route53
-    Route53 --> ALB
-    IGW --> ALB
+    OnPrem --> TGW
+    TGW --> VPC
+    TGW -.->|Outbound Internet| NATGateway[Centralized NAT/Egress VPC]
     ALB --> UIService
     ALB --> APIService
     ALB --> ChatService
@@ -87,9 +93,11 @@ graph TB
     ALB -.->|SSL/TLS| ACM
     
     %% Routing Labels
-    ALB -.->|"andes.aubrisa.dev"| UIService
-    ALB -.->|"api.andes.aubrisa.dev"| APIService
-    ALB -.->|"chat-api.andes.aubrisa.dev"| ChatService
+    ALB -.->|"andes.internal.aubrisa.dev"| UIService
+    ALB -.->|"api.andes.internal.aubrisa.dev"| APIService
+    ALB -.->|"chat-api.andes.internal.aubrisa.dev"| ChatService
+    
+    Route53Private -.-> ALB
     
     %% Backend services (no ALB routing)
     APIService -.->|"Internal calls"| ReportService
@@ -102,17 +110,16 @@ graph TB
 
 | Resource | Name | Description |
 | --- | --- | --- |
-| VPC | `andes-[env]-vpc` | App VPC with DNS support/hostnames (10.0.0.0/16) |
-| Public Subnets | `andes-[env]-public-subnet-1/2` | AZ a/b, map public IP on launch (10.0.1.0/24, 10.0.2.0/24) |
-| Internet Gateway | `andes-[env]-igw` | IGW attach + 0.0.0.0/0 route |
-| Route Table | `andes-[env]-public-rt` | Public route table with IGW route |
-| Security Groups | `andes-[env]-alb-sg`<br/>`andes-[env]-ecs-sg`<br/>`andes-[env]-rds-sg`<br/>`andes-[env]-efs-sg` | ALB: 80/443 from 0.0.0.0/0<br/>ECS: 8080 from ALB SG<br/>RDS: 1433 from ECS SG<br/>EFS: 2049 from ECS SG |
-| Application Load Balancer | `andes-[env]-alb` | Internet-facing across both public subnets |
+| VPC | Existing spoke VPC | Pre-existing VPC connected to Transit Gateway for on-prem access |
+| Private Subnets | Pre-existing | Two private subnets in different AZs with routes to Transit Gateway |
+| Transit Gateway | Pre-existing | Provides connectivity to on-prem network and centralized egress |
+| Security Groups | `andes-[env]-alb-sg`<br/>`andes-[env]-ecs-sg`<br/>`andes-[env]-rds-sg`<br/>`andes-[env]-efs-sg` | ALB: 80/443 from 10.0.0.0/8<br/>ECS: 8080 from ALB SG<br/>RDS: 1433 from ECS SG only<br/>EFS: 2049 from ECS SG |
+| Application Load Balancer | `andes-[env]-alb` | Internal ALB in private subnets, accessible via on-prem network |
 | ALB Listeners | AWS-managed | HTTP:80 redirect → HTTPS:443 |
 | Target Groups | `andes-[env]-api-tg`<br/>`andes-[env]-chat-tg`<br/>`andes-[env]-ui-tg` | All @8080, IP target type, host-based health checks |
 | Listener Rules | AWS-managed | Host-based routing (api.andes.[domain], chat-api.andes.[domain]; default ui) |
-| ACM Certificate | AWS-managed | DNS-validated wildcard cert for *.andes.[domain] + andes.[domain] |
-| Route 53 Records | `andes.[domain]`<br/>`*.andes.[domain]` | A/AAAA alias to ALB |
+| ACM Certificate | AWS-managed | DNS-validated wildcard cert for *.andes.internal.aubrisa.dev + andes.internal.aubrisa.dev |
+| Route 53 Records | `andes.internal.aubrisa.dev`<br/>`*.andes.internal.aubrisa.dev` | A alias to internal ALB in private hosted zone |
 | ECS Cluster | `andes-[env]` | Fargate cluster |
 | ECS Services | `andes-[env]-ui`<br/>`andes-[env]-api`<br/>`andes-[env]-chat`<br/>`andes-[env]-reporting`<br/>`andes-[env]-load`<br/>`andes-[env]-adjustments`<br/>`andes-[env]-murex` | Web-facing (ui/api/chat) + backend services |
 | Task Definitions | `andes-ui`<br/>`andes-api`<br/>`andes-chat`<br/>`andes-reporting`<br/>`andes-load`<br/>`andes-adjustments`<br/>`andes-murex` | One per service; env/secrets/logging; all @8080 |
@@ -120,25 +127,21 @@ graph TB
 | SQS Queue | `andes-[env]-queue` | 14-day retention, Standard queue |
 | EFS FileSystem | `andes-[env]-efs` | Shared storage for API/Load/Reporting services |
 | CloudWatch Log Groups | `/andes/[env]/api`<br/>`/andes/[env]/chat`<br/>`/andes/[env]/ui`<br/>`/andes/[env]/report`<br/>`/andes/[env]/load`<br/>`/andes/[env]/adjustments`<br/>`/andes/[env]/murex` | 7-day retention (configurable) |
-| RDS Instance | `andes-[env]-sql` | SQL Server SE, db.m5.large, gp3 100GB, 7-day backups |
-| RDS Subnet Group | `andes-[env]-rds-subnet-group` | Uses both public subnets (SG-restricted) |
+| RDS Instance | `andes-[env]-sql` | SQL Server SE, db.m5.large, gp3 100GB, 7-day backups, private subnets only |
+| RDS Subnet Group | `andes-[env]-rds-subnet-group` | Uses both private subnets (not publicly accessible) |
 | Secrets Manager | `andes/[env]/entraid-api-key`<br/>`andes/[env]/chat-api-key`<br/>`andes/[env]/ai-api-key`<br/>`andes/[env]/rds-password` | API keys (placeholders) + generated DB password |
 | IAM Roles | `andes-[env]-task-execution-role`<br/>`andes-[env]-*-task-role` | Execution role + per-service task roles with specific permissions |
-| Hosted Zone | Existing | Pre-existing Route 53 zone for domain |
+| Hosted Zone | Existing private zone | Pre-existing private Route 53 zone for internal.aubrisa.dev |
 
 ### Prerequisites
 
 - AWS CLI configured with permissions for CloudFormation, S3, ECS, RDS, IAM, Route 53, ACM, and Secrets Manager.
 - A private ECR (Elastic Container Registry).
-- A public hosted zone in Route 53 containing `DomainName`.
-- PowerShell (scripts use backticks for line continuation).
-
-## Prerequisites
-
-1. **AWS Account** with administrative access
-2. **Domain name** with Route 53 hosted zone
-3. **Container images** pushed to your ECR repository
-4. **S3 Bucket** for CloudFormation package
+- A private hosted zone in Route 53 for the domain, e.g. `internal.aubrisa.com`.
+- An existing spoke VPC with two private subnets in different AZs.
+- Transit Gateway configured for on-prem connectivity and centralized egress.
+- PowerShell
+  - 
 
 ## Step 1: Copy Container Images
 
@@ -239,16 +242,16 @@ Copy `app-template.json` to `app-[enviroment].json` and update:
     "ParameterValue": "YOUR-ACCOUNT.dkr.ecr.YOUR-REGION.amazonaws.com"
   },
   {
-    "ParameterKey": "VpcCidr",
-    "ParameterValue": "10.0.0.0/16"
+    "ParameterKey": "ExistingVpcId",
+    "ParameterValue": "vpc-XXXXXXXXXX"
   },
   {
-    "ParameterKey": "PublicSubnet1Cidr",
-    "ParameterValue": "10.0.1.0/24"
+    "ParameterKey": "PrivateSubnet1Id",
+    "ParameterValue": "subnet-XXXXXXXXXX"
   },
   {
-    "ParameterKey": "PublicSubnet2Cidr",
-    "ParameterValue": "10.0.2.0/24"
+    "ParameterKey": "PrivateSubnet2Id",
+    "ParameterValue": "subnet-YYYYYYYYYY"
   },
   {
     "ParameterKey": "DbUsername",
@@ -304,19 +307,15 @@ Copy `app-template.json` to `app-[enviroment].json` and update:
   },
   {
     "ParameterKey": "DomainName",
-    "ParameterValue": "your-domain.com"
+    "ParameterValue": "andes.internal.aubrisa.dev"
   },
   {
     "ParameterKey": "HostedZoneId",
-    "ParameterValue": "ROUTE_53_ZONE_ID"
+    "ParameterValue": "PRIVATE_ZONE_ID"
   },
   {
     "ParameterKey": "LogRetentionDays",
     "ParameterValue": "7"
-  },
-  {
-    "ParameterKey": "AdminCidr",
-    "ParameterValue": "YOUR_IP/32"
   },
   {
     "ParameterKey": "EnableECSExec",
@@ -429,7 +428,7 @@ PowerShell:
 # Set API keys
 aws secretsmanager update-secret `
   --secret-id andes/[env]/entraid-api-key `
-  --secret-string '{"key": "ENTRA_KEY"}'
+  --secret-string '{"key": "Secret"}'
 
 aws secretsmanager update-secret `
   --secret-id andes/[env]/bot-api-key `
@@ -467,6 +466,14 @@ aws cloudformation deploy \
 
 ## Monitoring
 
-- **Application URL**: `https://your-domain.com`
+- **Application URL** (from on-prem network): `https://andes.internal.aubrisa.dev`
 - **CloudWatch Logs**: `/andes/[env]/[service]`
-- **RDS Endpoint**: Check stack outputs
+- **RDS Endpoint**: Check stack outputs (accessible only from ECS tasks)
+
+## Network Architecture Notes
+
+- **Internal ALB**: Accessible only from on-premises network via Transit Gateway
+- **No Public IPs**: All resources deployed in private subnets
+- **Outbound Internet**: ECS tasks access internet via centralized NAT/Egress VPC through Transit Gateway
+- **Database Access**: RDS accessible only from ECS security group, no external access
+- **DNS Resolution**: Private Route 53 hosted zone resolves internal.aubrisa.dev domain

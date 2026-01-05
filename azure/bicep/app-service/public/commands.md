@@ -2,7 +2,7 @@
 
 ## Key Vault
 Setup
-`az keyvault create --name aubrisa-general-keyvault --resource-group "aubrisa-general" --location "UK South"`
+`az keyvault create --name aubrisa-main-keyvault --resource-group "aubrisa-general" --location "UK South"`
 
 Add keys
 

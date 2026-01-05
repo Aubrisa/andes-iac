@@ -6,14 +6,18 @@ Parameters:
     Type: String
   EnvironmentName:
     Type: String
-  TenantId:
+  TenantIdParameter:
     Type: String
-  ClientId:
+    Description: SSM Parameter name for Tenant ID
+  ClientIdParameter:
     Type: String
-  BotAppId:
+    Description: SSM Parameter name for Client ID
+  BotAppIdParameter:
     Type: String
-  BotTenantId:
+    Description: SSM Parameter name for Bot App ID
+  BotTenantIdParameter:
     Type: String
+    Description: SSM Parameter name for Bot Tenant ID
   BotAppType:
     Type: String
   BotOAuthConnectionName:
@@ -81,10 +85,6 @@ Resources:
           Environment:
             - Name: ASPNETCORE_ENVIRONMENT
               Value: !Ref EnvironmentName
-            - Name: ENTRAID__TENANTID
-              Value: !Ref TenantId
-            - Name: ENTRAID__CLIENTID
-              Value: !Ref ClientId
             - Name: AWSSETTINGS__REGION
               Value: !Ref AWS::Region
             - Name: AWSSETTINGS__MESSAGEDATAPATH
@@ -103,10 +103,6 @@ Resources:
               Value: !Ref AiEmbeddingModelId
             - Name: NOTIFICATIONSETTINGS__BOTAPPTYPE
               Value: !Ref BotAppType
-            - Name: NOTIFICATIONSETTINGS__BOTAPPID
-              Value: !Ref BotAppId
-            - Name: NOTIFICATIONSETTINGS__BOTTENANTID
-              Value: !Ref BotTenantId
             - Name: NOTIFICATIONSETTINGS__AUTHENTICATIONCONFIGNAME
               Value: !Ref BotOAuthConnectionName
             - Name: UI_BASE_URL
@@ -124,6 +120,14 @@ Resources:
             - Name: NOTIFICATIONSETTINGS__CHANNELS__1
               Value: !If [TeamsEnabled, "Teams", ""]
           Secrets:
+            - Name: ENTRAID__TENANTID
+              ValueFrom: !Ref TenantIdParameter
+            - Name: ENTRAID__CLIENTID
+              ValueFrom: !Ref ClientIdParameter
+            - Name: NOTIFICATIONSETTINGS__BOTAPPID
+              ValueFrom: !Ref BotAppIdParameter
+            - Name: NOTIFICATIONSETTINGS__BOTTENANTID
+              ValueFrom: !Ref BotTenantIdParameter
             - Name: ENTRAID__APISECRET
               ValueFrom: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/entraid-api-key:key::'
             - Name: AISETTINGS__AIAPIKEY

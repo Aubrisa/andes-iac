@@ -123,6 +123,51 @@ Resources:
       LogGroupName: !Sub '/andes/${EnvironmentName}/murex'
       RetentionInDays: !Ref LogRetentionDays
 
+  # SSM Parameters for Entra ID configuration
+  TenantIdParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '/${AppName}/${EnvironmentName}/entraid/tenant-id'
+      Description: Entra ID Tenant ID
+      Type: String
+      Value: 'placeholder'
+      Tags:
+        Name: !Sub '${AppName}-${EnvironmentName}-tenant-id'
+        Environment: !Ref EnvironmentName
+
+  ClientIdParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '/${AppName}/${EnvironmentName}/entraid/client-id'
+      Description: Entra ID Client ID
+      Type: String
+      Value: 'placeholder'
+      Tags:
+        Name: !Sub '${AppName}-${EnvironmentName}-client-id'
+        Environment: !Ref EnvironmentName
+
+  BotTenantIdParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '/${AppName}/${EnvironmentName}/bot/tenant-id'
+      Description: Bot Tenant ID
+      Type: String
+      Value: 'placeholder'
+      Tags:
+        Name: !Sub '${AppName}-${EnvironmentName}-bot-tenant-id'
+        Environment: !Ref EnvironmentName
+
+  BotAppIdParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '/${AppName}/${EnvironmentName}/bot/app-id'
+      Description: Bot App ID
+      Type: String
+      Value: 'placeholder'
+      Tags:
+        Name: !Sub '${AppName}-${EnvironmentName}-bot-app-id'
+        Environment: !Ref EnvironmentName
+
 Outputs:
   SqsQueueUrl:
     Value: !Ref SqsQueue
@@ -146,3 +191,15 @@ Outputs:
     Value: !Ref SharedFileSystem
   EfsAccessPointId:
     Value: !Ref SharedAccessPoint
+  TenantIdParameter:
+    Value: !Ref TenantIdParameter
+    Description: SSM Parameter for Tenant ID
+  ClientIdParameter:
+    Value: !Ref ClientIdParameter
+    Description: SSM Parameter for Client ID
+  BotTenantIdParameter:
+    Value: !Ref BotTenantIdParameter
+    Description: SSM Parameter for Bot Tenant ID
+  BotAppIdParameter:
+    Value: !Ref BotAppIdParameter
+    Description: SSM Parameter for Bot App ID

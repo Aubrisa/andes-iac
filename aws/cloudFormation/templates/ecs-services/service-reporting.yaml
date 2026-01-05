@@ -19,7 +19,7 @@ Resources:
   ServiceReport:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: !Sub '${ClusterName}-reporting'
+      ServiceName: !Sub '${ClusterName}-reporting-service'
       Cluster: !Ref ClusterName
       DesiredCount: !Ref DesiredCount
       LaunchType: FARGATE

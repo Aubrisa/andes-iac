@@ -20,7 +20,7 @@ Resources:
             Action:
               - sts:AssumeRole
       Policies:
-        - PolicyName: MurexSecrets
+        - PolicyName: MurexServicePolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -63,6 +63,13 @@ Resources:
                 Action:
                   - sns:ListTopics
                 Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:*'
+              - Effect: Allow
+                Action:
+                  - ssmmessages:CreateControlChannel
+                  - ssmmessages:CreateDataChannel
+                  - ssmmessages:OpenControlChannel
+                  - ssmmessages:OpenDataChannel
+                Resource: !Sub 'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:instance/*'
 
 Outputs:
   MurexTaskRoleArn:

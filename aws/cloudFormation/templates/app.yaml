@@ -14,10 +14,21 @@ Description: >
   ALB, ECS tasks, and services
 
 Parameters:
+  # Instance Configuration
   AppName:
     Type: String
   EnvironmentName:
     Type: String
+  #Entra ID - API key is still a parameter (secret), but TenantId/ClientId moved to SSM
+  EntraIdApiKey:
+    Type: String
+  BotApiKey:
+    Type: String
+  AiApiKey:
+    Type: String
+  BotAppType:
+    Type: String
+
   ImageTag:
     Type: String
     Default: latest
@@ -25,21 +36,24 @@ Parameters:
     Type: String
     Description: ECR repository URI base (without tag)
 
-  VpcCidr:
+  ExistingVpcId:
     Type: String
-    Default: 10.0.0.0/16
-  PublicSubnet1Cidr:
+    Description: ID of the existing spoke VPC connected to Transit Gateway
+  PrivateSubnet1Id:
     Type: String
-    Default: 10.0.1.0/24
-  PublicSubnet2Cidr:
+    Description: ID of the first private subnet in AZ1
+  PrivateSubnet2Id:
     Type: String
-    Default: 10.0.2.0/24
-  PrivateSubnet1Cidr:
+    Description: ID of the second private subnet in AZ2
+  PublicSubnet1Id:
     Type: String
-    Default: 10.0.3.0/24
-  PrivateSubnet2Cidr:
+    Description: ID of the first public subnet in AZ1 (for chat ALB)
+  PublicSubnet2Id:
     Type: String
-    Default: 10.0.4.0/24
+    Description: ID of the second public subnet in AZ2 (for chat ALB)
+  OnPremCidr:
+    Type: String
+    Description: CIDR range for on-premises network to access RDS
   DbUsername:
     Type: String
   DbInstanceClass:
@@ -61,16 +75,7 @@ Parameters:
     Type: Number
     Default: 1
 
-  BotAppId:
-    Type: String
-  BotTenantId:
-    Type: String
-  BotAppType:
-    Type: String
-  TenantId:
-    Type: String
-  ClientId:
-    Type: String
+
   BotOAuthConnectionName:
     Type: String
     Default: Azure AD
@@ -84,18 +89,21 @@ Parameters:
     Default: text-embedding-ada-002
   DomainName:
     Type: String
-    Description: FQDN served by the ALB (e.g., andes.aubrisa.com)
-  HostedZoneId:
+    Description: FQDN served by the internal ALB (e.g., andes.internal.aubrisa.dev)
+  ChatDomainName:
     Type: String
-    Description: Route 53 hosted zone ID for the domain
+    Description: FQDN for the public chat API (e.g., chat-api.aubrisa.dev)
+  PrivateHostedZoneId:
+    Type: String
+    Description: Route 53 private hosted zone ID for internal domain
+  PublicHostedZoneId:
+    Type: String
+    Description: Route 53 public hosted zone ID for chat API domain
   LogRetentionDays:
     Type: Number
     Default: 7
     AllowedValues: [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653]
     Description: CloudWatch log retention period in days
-  AdminCidr:
-    Type: String
-    Description: IP address for admin access to RDS (format x.x.x.x/32)
   EnableECSExec:
     Type: String
     Default: 'false'
@@ -120,7 +128,7 @@ Resources:
     Properties:
       Name: !Sub '${AppName}/${EnvironmentName}/entraid-api-key'
       Description: 'Entra API key for Andes application'
-      SecretString: '{"key": "PLACEHOLDER_VALUE"}'
+      SecretString: !Sub '{"key": "${EntraIdApiKey}"}'
 
   BotApiKeySecret:
     Type: AWS::SecretsManager::Secret
@@ -129,7 +137,7 @@ Resources:
     Properties:
       Name: !Sub '${AppName}/${EnvironmentName}/bot-api-key'
       Description: 'Bot API key for Andes application'
-      SecretString: '{"key": "PLACEHOLDER_VALUE"}'
+      SecretString: !Sub '{"key": "${BotApiKey}"}'
 
   AiApiKeySecret:
     Type: AWS::SecretsManager::Secret
@@ -138,7 +146,7 @@ Resources:
     Properties:
       Name: !Sub '${AppName}/${EnvironmentName}/ai-api-key'
       Description: 'AI API key for Andes application'
-      SecretString: '{"key": "PLACEHOLDER_VALUE"}'
+      SecretString: !Sub '{"key": "${AiApiKey}"}'
 
   NetworkStack:
     Type: AWS::CloudFormation::Stack
@@ -149,12 +157,10 @@ Resources:
       Parameters:
         AppName: !Ref AppName
         EnvironmentName: !Ref EnvironmentName
-        VpcCidr: !Ref VpcCidr
-        PublicSubnet1Cidr: !Ref PublicSubnet1Cidr
-        PublicSubnet2Cidr: !Ref PublicSubnet2Cidr
-        PrivateSubnet1Cidr: !Ref PrivateSubnet1Cidr
-        PrivateSubnet2Cidr: !Ref PrivateSubnet2Cidr
-        AdminCidr: !Ref AdminCidr
+        ExistingVpcId: !Ref ExistingVpcId
+        PrivateSubnet1Id: !Ref PrivateSubnet1Id
+        PrivateSubnet2Id: !Ref PrivateSubnet2Id
+        OnPremCidr: !Ref OnPremCidr
 
   StorageStack:
     Type: AWS::CloudFormation::Stack
@@ -196,22 +202,23 @@ Resources:
         DbAllocatedStorage: !Ref DbAllocatedStorage
         DbEngine: !Ref DbEngine
         DbEngineVersion: !Ref DbEngineVersion
-        PublicSubnet1Id: !GetAtt NetworkStack.Outputs.PublicSubnet1Id
-        PublicSubnet2Id: !GetAtt NetworkStack.Outputs.PublicSubnet2Id
+        PrivateSubnet1Id: !GetAtt NetworkStack.Outputs.PrivateSubnet1Id
+        PrivateSubnet2Id: !GetAtt NetworkStack.Outputs.PrivateSubnet2Id
         RdsSecurityGroupId: !GetAtt NetworkStack.Outputs.RdsSecurityGroupId
 
-  # DatabaseInitStack:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn: RdsStack
-  #   Properties:
-  #     TemplateURL: ./database/database-init.yaml
-  #     Parameters:
-  #       AppName: !Ref AppName
-  #       EnvironmentName: !Ref EnvironmentName
-  #       RdsEndpoint: !GetAtt RdsStack.Outputs.RdsEndpoint
-  #       DbUsername: !Ref DbUsername
-  #       RdsPasswordSecretArn: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/rds-password'
+  # WAF for Chat API
+  WafChatStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: public/waf-chat.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+        RateLimitPerFiveMinutes: 2000
 
+  # Internal ALB for main services
   AlbStack:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
@@ -222,11 +229,30 @@ Resources:
         AppName: !Ref AppName
         EnvironmentName: !Ref EnvironmentName
         VpcId: !GetAtt NetworkStack.Outputs.VpcId
-        PublicSubnet1Id: !GetAtt NetworkStack.Outputs.PublicSubnet1Id
-        PublicSubnet2Id: !GetAtt NetworkStack.Outputs.PublicSubnet2Id
+        PrivateSubnet1Id: !GetAtt NetworkStack.Outputs.PrivateSubnet1Id
+        PrivateSubnet2Id: !GetAtt NetworkStack.Outputs.PrivateSubnet2Id
         AlbSecurityGroupId: !GetAtt NetworkStack.Outputs.AlbSecurityGroupId
         DomainName: !Ref DomainName
-        HostedZoneId: !Ref HostedZoneId
+        HostedZoneId: !Ref PrivateHostedZoneId
+
+  # Public ALB for Chat API (Bot Framework)
+  AlbChatPublicStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: WafChatStack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TemplateURL: public/alb-chat-public.yaml
+      Parameters:
+        AppName: !Ref AppName
+        EnvironmentName: !Ref EnvironmentName
+        VpcId: !GetAtt NetworkStack.Outputs.VpcId
+        PublicSubnet1Id: !Ref PublicSubnet1Id
+        PublicSubnet2Id: !Ref PublicSubnet2Id
+        AlbChatSecurityGroupId: !GetAtt NetworkStack.Outputs.AlbChatSecurityGroupId
+        ChatDomainName: !Ref ChatDomainName
+        HostedZoneId: !Ref PublicHostedZoneId
+        WafWebAclArn: !GetAtt WafChatStack.Outputs.WebAclArn
 
   EcsTasksStack:
     Type: AWS::CloudFormation::Stack
@@ -258,11 +284,11 @@ Resources:
         LogGroupMurex: !GetAtt StorageStack.Outputs.LogGroupMurex
         EfsFileSystemId: !GetAtt StorageStack.Outputs.EfsFileSystemId
         EfsAccessPointId: !GetAtt StorageStack.Outputs.EfsAccessPointId
-        BotAppId: !Ref BotAppId
-        BotTenantId: !Ref BotTenantId
         BotAppType: !Ref BotAppType
-        TenantId: !Ref TenantId
-        ClientId: !Ref ClientId
+        BotAppIdParameter: !GetAtt StorageStack.Outputs.BotAppIdParameter
+        TenantIdParameter: !GetAtt StorageStack.Outputs.TenantIdParameter
+        ClientIdParameter: !GetAtt StorageStack.Outputs.ClientIdParameter
+        BotTenantIdParameter: !GetAtt StorageStack.Outputs.BotTenantIdParameter
         BotOAuthConnectionName: !Ref BotOAuthConnectionName
         AiEndpoint: !Ref AiEndpoint
         AiChatModelId: !Ref AiChatModelId
@@ -288,7 +314,7 @@ Resources:
         PrivateSubnet1Id: !GetAtt NetworkStack.Outputs.PrivateSubnet1Id
         PrivateSubnet2Id: !GetAtt NetworkStack.Outputs.PrivateSubnet2Id
         TgApiArn: !GetAtt AlbStack.Outputs.TgApiArn
-        TgChatArn: !GetAtt AlbStack.Outputs.TgChatArn
+        TgChatArn: !GetAtt AlbChatPublicStack.Outputs.TgChatPublicArn
         TgUiArn: !GetAtt AlbStack.Outputs.TgUiArn
         TaskDefApiArn: !GetAtt EcsTasksStack.Outputs.TaskDefApiArn
         TaskDefChatArn: !GetAtt EcsTasksStack.Outputs.TaskDefChatArn
@@ -301,6 +327,13 @@ Resources:
 Outputs:
   LoadBalancerDNS:
     Value: !GetAtt AlbStack.Outputs.LoadBalancerDNS
+    Description: Internal ALB DNS
+  ChatApiUrl:
+    Value: !GetAtt AlbChatPublicStack.Outputs.ChatApiUrl
+    Description: Public chat API URL for Bot Framework configuration
+  ChatApiAlbDns:
+    Value: !GetAtt AlbChatPublicStack.Outputs.LoadBalancerChatDNS
+    Description: Public chat ALB DNS
   QueueUrl:
     Value: !GetAtt StorageStack.Outputs.SqsQueueUrl
   RdsEndpoint:

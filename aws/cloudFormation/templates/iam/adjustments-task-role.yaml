@@ -20,7 +20,7 @@ Resources:
             Action:
               - sts:AssumeRole
       Policies:
-        - PolicyName: AdjustmentsSecrets
+        - PolicyName: AdjustmentsServicePolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:

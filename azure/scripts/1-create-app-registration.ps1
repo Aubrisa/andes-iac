@@ -41,7 +41,8 @@ param(
     [Parameter(Mandatory=$true)][string]$AppUrl,
     [string]$DisplayName = $null,
     [int]$SecretExpiryYears = 1,
-    [bool]$CopySecretToClipboard = $False
+    [bool]$CopySecretToClipboard = $False,
+    [bool]$AutoDisconnect = $True
 )
 
 $ErrorActionPreference = "Stop"
@@ -101,6 +102,9 @@ Write-Host "Identifier URI:   $identifierUri"
 
 $app = $null
 $sp = $null
+
+$clientId = $null
+$secretValue = $null
 
 try {
     # Connect to Microsoft Graph (interactive)
@@ -264,7 +268,6 @@ try {
 
     # Output results
     $clientId = $app.AppId
-    $secretId = $secret.Id
     $secretValue = $secret.SecretText
 
     Write-Host "`n---------------------------------------------------------------------" `
@@ -293,7 +296,15 @@ try {
     }
 
     Write-Host "`nIMPORTANT: The client secret cannot be retrievable later." -ForegroundColor Yellow
-    Write-Host "Store the secret in AWS Secrets Manager at: andes/$Environment/api/config/entraid-api-key"
+
+    $env:ClientId = $clientId
+    $env:ClientSecret = $secretValue
+
+    Write-Host "`nTo remove this app registration:`n"
+    Write-Host '    Connect-MgGraph -Scopes "Application.ReadWrite.All"'
+    Write-Host "    Remove-MgApplication -ApplicationId `"$clientId`""
+    Write-Host "    Disconnect-MgGraph"
+
 } catch {
     Write-Host "`n$([char]0x274C) Error occurred: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host $_.ScriptStackTrace -ForegroundColor DarkGray
@@ -322,9 +333,12 @@ try {
     throw
     
 } finally {
-    # Always disconnect, whether success or failure
-    if (Get-MgContext) {
-        Disconnect-MgGraph | Out-Null
-    }
+if ((Get-MgContext) -and $AutoDisconnect) {
+    Disconnect-MgGraph | Out-Null
+}
 }
 
+return @{
+    ClientId = $clientId
+    ClientSecret = $secretValue
+}

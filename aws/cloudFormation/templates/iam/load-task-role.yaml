@@ -24,7 +24,7 @@ Resources:
             Action:
               - sts:AssumeRole
       Policies:
-        - PolicyName: LoadSecrets
+        - PolicyName: LoadServicePolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -47,7 +47,9 @@ Resources:
                   - sqs:PurgeQueue
                   - sqs:DeleteQueue
                   - sqs:TagQueue
-                Resource: !Sub 'arn:${AWS::Partition}:sqs:*:${AWS::AccountId}:${AppName}-${EnvironmentName}*'
+                Resource: 
+                  - !Sub 'arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AppName}-${EnvironmentName}*'
+                  - !Sub 'arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:instance-*'
               - Effect: Allow
                 Action:
                   - logs:CreateLogStream

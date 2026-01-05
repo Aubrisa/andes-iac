@@ -6,182 +6,53 @@ Parameters:
     Type: String
   EnvironmentName:
     Type: String
-  VpcCidr:
+  ExistingVpcId:
     Type: String
-  PublicSubnet1Cidr:
+    Description: ID of the existing VPC (spoke VPC connected to Transit Gateway)
+  PrivateSubnet1Id:
     Type: String
-  PublicSubnet2Cidr:
+    Description: ID of the first private subnet in AZ1
+  PrivateSubnet2Id:
     Type: String
-  PrivateSubnet1Cidr:
+    Description: ID of the second private subnet in AZ2
+  OnPremCidr:
     Type: String
-  PrivateSubnet2Cidr:
-    Type: String
-  AdminCidr:
-    Type: String
-    Description: IP address for admin access to RDS
+    Description: CIDR range for on-premises network to access RDS
 
 Resources:
-  Vpc:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: !Ref VpcCidr
-      EnableDnsSupport: true
-      EnableDnsHostnames: true
-      Tags:
-        - Key: Name
-          Value: !Sub '${AppName}-${EnvironmentName}-vpc'
-
-  InternetGateway:
-    Type: AWS::EC2::InternetGateway
-    Properties:
-      Tags:
-        - Key: Name
-          Value: !Sub '${AppName}-${EnvironmentName}-igw'
-
-  VpcIgwAttachment:
-    Type: AWS::EC2::VPCGatewayAttachment
-    Properties:
-      VpcId: !Ref Vpc
-      InternetGatewayId: !Ref InternetGateway
-
-  PublicSubnet1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref Vpc
-      CidrBlock: !Ref PublicSubnet1Cidr
-      MapPublicIpOnLaunch: true
-      AvailabilityZone: !Select [0, !GetAZs '']
-      Tags:
-        - Key: Name
-          Value: !Sub '${AppName}-${EnvironmentName}-public-subnet-1'
-
-  PublicSubnet2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref Vpc
-      CidrBlock: !Ref PublicSubnet2Cidr
-      MapPublicIpOnLaunch: true
-      AvailabilityZone: !Select [1, !GetAZs '']
-      Tags:
-        - Key: Name
-          Value: !Sub '${AppName}-${EnvironmentName}-public-subnet-2'
-
-  PublicRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref Vpc
-      Tags:
-        - Key: Name
-          Value: !Sub '${AppName}-${EnvironmentName}-public-rt'
-
-  PublicRoute:
-    Type: AWS::EC2::Route
-    DependsOn: VpcIgwAttachment
-    Properties:
-      RouteTableId: !Ref PublicRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref InternetGateway
-
-  PublicSubnet1RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PublicSubnet1
-      RouteTableId: !Ref PublicRouteTable
-
-  PublicSubnet2RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PublicSubnet2
-      RouteTableId: !Ref PublicRouteTable
-
-  PrivateSubnet1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref Vpc
-      CidrBlock: !Ref PrivateSubnet1Cidr
-      MapPublicIpOnLaunch: false
-      AvailabilityZone: !Select [0, !GetAZs '']
-      Tags:
-        - Key: Name
-          Value: !Sub '${AppName}-${EnvironmentName}-private-subnet-1'
-
-  PrivateSubnet2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref Vpc
-      CidrBlock: !Ref PrivateSubnet2Cidr
-      MapPublicIpOnLaunch: false
-      AvailabilityZone: !Select [1, !GetAZs '']
-      Tags:
-        - Key: Name
-          Value: !Sub '${AppName}-${EnvironmentName}-private-subnet-2'
-
-  NatGatewayEip:
-    Type: AWS::EC2::EIP
-    DependsOn: VpcIgwAttachment
-    Properties:
-      Domain: vpc
-      Tags:
-        - Key: Name
-          Value: !Sub '${AppName}-${EnvironmentName}-nat-eip'
-
-  NatGateway:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NatGatewayEip.AllocationId
-      SubnetId: !Ref PublicSubnet1
-      Tags:
-        - Key: Name
-          Value: !Sub '${AppName}-${EnvironmentName}-nat-gw'
-
-  PrivateRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref Vpc
-      Tags:
-        - Key: Name
-          Value: !Sub '${AppName}-${EnvironmentName}-private-rt'
-
-  PrivateRoute:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway
-
-  PrivateSubnet1RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PrivateSubnet1
-      RouteTableId: !Ref PrivateRouteTable
-
-  PrivateSubnet2RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PrivateSubnet2
-      RouteTableId: !Ref PrivateRouteTable
-
   AlbSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: !Sub '${AppName}-${EnvironmentName}-alb-sg'
-      VpcId: !Ref Vpc
-      GroupDescription: ALB ingress
+      VpcId: !Ref ExistingVpcId
+      GroupDescription: Internal ALB ingress from VPC (accessible via Transit Gateway from on-prem)
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          CidrIp: 0.0.0.0/0
+          CidrIp: 10.0.0.0/8
+          Description: HTTP from private networks
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
-          CidrIp: 0.0.0.0/0
+          CidrIp: 10.0.0.0/8
+          Description: HTTPS from private networks
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Ref OnPremCidr
+          Description: HTTP from on-premises network
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !Ref OnPremCidr
+          Description: HTTPS from on-premises network
 
   EcsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: !Sub '${AppName}-${EnvironmentName}-ecs-sg'
-      VpcId: !Ref Vpc
+      VpcId: !Ref ExistingVpcId
       GroupDescription: ECS tasks
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -197,24 +68,25 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: !Sub '${AppName}-${EnvironmentName}-rds-sg'
-      VpcId: !Ref Vpc
-      GroupDescription: RDS ingress from ECS
+      VpcId: !Ref ExistingVpcId
+      GroupDescription: RDS ingress from ECS tasks and on-premises network
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 1433
           ToPort: 1433
           SourceSecurityGroupId: !Ref EcsSecurityGroup
+          Description: SQL Server access from ECS tasks
         - IpProtocol: tcp
           FromPort: 1433
           ToPort: 1433
-          CidrIp: !Ref AdminCidr
-          Description: Admin access from specific IP
+          CidrIp: !Ref OnPremCidr
+          Description: Allow SQL Server access from on-premises network
 
   EfsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: !Sub '${AppName}-${EnvironmentName}-efs-sg'
-      VpcId: !Ref Vpc
+      VpcId: !Ref ExistingVpcId
       GroupDescription: EFS mount targets ingress from ECS
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -222,17 +94,125 @@ Resources:
           ToPort: 2049
           SourceSecurityGroupId: !Ref EcsSecurityGroup
 
+  # Security group for public-facing Chat API ALB
+  # Restricted to Microsoft Bot Framework IP addresses
+  AlbChatSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub '${AppName}-${EnvironmentName}-chat-alb-sg'
+      VpcId: !Ref ExistingVpcId
+      GroupDescription: Public ALB for Chat API - restricted to Microsoft Bot Framework IPs
+      SecurityGroupIngress:
+        # Microsoft Bot Framework IP ranges (as of 2024)
+        # Source: https://learn.microsoft.com/azure/bot-service/bot-service-ip-addresses
+        
+        # Americas region IPs
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 13.72.243.10/32
+          Description: Bot Framework - West US
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 40.83.178.203/32
+          Description: Bot Framework - West US
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 52.161.25.61/32
+          Description: Bot Framework - South Central US
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 52.247.220.191/32
+          Description: Bot Framework - South Central US
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 20.42.6.144/28
+          Description: Bot Framework - East US
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 20.42.7.0/26
+          Description: Bot Framework - East US range
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 40.71.11.80/28
+          Description: Bot Framework - East US 2
+        
+        # Europe region IPs
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 51.105.224.32/28
+          Description: Bot Framework - West Europe
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 51.105.224.64/26
+          Description: Bot Framework - West Europe range
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 20.50.161.176/28
+          Description: Bot Framework - North Europe
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 20.50.168.128/26
+          Description: Bot Framework - North Europe range
+        
+        # Asia Pacific region IPs
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 20.195.65.176/28
+          Description: Bot Framework - Southeast Asia
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 20.195.72.0/26
+          Description: Bot Framework - Southeast Asia range
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 20.43.120.80/28
+          Description: Bot Framework - East Asia
+        
+        # HTTP redirect (port 80)
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+          Description: Allow HTTP for redirect to HTTPS
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          DestinationSecurityGroupId: !Ref EcsSecurityGroup
+          Description: Forward to ECS tasks
+
+  # Update ECS security group to allow traffic from public chat ALB
+  EcsSecurityGroupIngressFromChatAlb:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref EcsSecurityGroup
+      IpProtocol: tcp
+      FromPort: 8080
+      ToPort: 8080
+      SourceSecurityGroupId: !Ref AlbChatSecurityGroup
+      Description: Allow traffic from public chat ALB
+
 Outputs:
   VpcId:
-    Value: !Ref Vpc
-  PublicSubnet1Id:
-    Value: !Ref PublicSubnet1
-  PublicSubnet2Id:
-    Value: !Ref PublicSubnet2
+    Value: !Ref ExistingVpcId
   PrivateSubnet1Id:
-    Value: !Ref PrivateSubnet1
+    Value: !Ref PrivateSubnet1Id
   PrivateSubnet2Id:
-    Value: !Ref PrivateSubnet2
+    Value: !Ref PrivateSubnet2Id
   AlbSecurityGroupId:
     Value: !Ref AlbSecurityGroup
   EcsSecurityGroupId:
@@ -241,3 +221,6 @@ Outputs:
     Value: !Ref RdsSecurityGroup
   EfsSecurityGroupId:
     Value: !Ref EfsSecurityGroup
+  AlbChatSecurityGroupId:
+    Value: !Ref AlbChatSecurityGroup
+    Description: Security group for public chat ALB with Bot Framework IP restrictions

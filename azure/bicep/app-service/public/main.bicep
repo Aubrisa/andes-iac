@@ -250,6 +250,8 @@ module apiApp './apps/api-app.bicep' = {
     appServicePlanId: appServicePlan.id
     registryUsername: registryUsername
     registryPassword: registryPassword
+    clientId: clientId
+    tenantId: tenantId
     apiKey: apiKey
     serviceBusConnectionString: serviceBusConnectionString
     appConnectionString: appConnectionString

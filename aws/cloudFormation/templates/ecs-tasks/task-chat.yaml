@@ -16,10 +16,12 @@ Parameters:
     Type: String
   LogGroupChat:
     Type: String
-  BotAppId:
+  BotAppIdParameter:
     Type: String
-  BotTenantId:
+    Description: SSM Parameter name for Bot App ID
+  BotTenantIdParameter:
     Type: String
+    Description: SSM Parameter name for Bot Tenant ID
   BotAppType:
     Type: String
   BotOAuthConnectionName:
@@ -54,10 +56,6 @@ Resources:
               Value: !Ref AWS::Region
             - Name: CHATSETTINGS__BOTAPPTYPE
               Value: !Ref BotAppType
-            - Name: CHATSETTINGS__BOTAPPID
-              Value: !Ref BotAppId
-            - Name: CHATSETTINGS__BOTTENANTID
-              Value: !Ref BotTenantId
             - Name: CHATSETTINGS__AUTHENTICATIONCONFIGNAME
               Value: !Ref BotOAuthConnectionName
             - Name: CHATSETTINGS__AIENDPOINT
@@ -67,6 +65,10 @@ Resources:
             - Name: CHATSETTINGS__EMBEDDINGMODELID
               Value: !Ref AiEmbeddingModelId
           Secrets:
+            - Name: CHATSETTINGS__BOTAPPID
+              ValueFrom: !Ref BotAppIdParameter
+            - Name: CHATSETTINGS__BOTTENANTID
+              ValueFrom: !Ref BotTenantIdParameter
             - Name: CHATSETTINGS__BOTAPPKEY
               ValueFrom: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${EnvironmentName}/bot-api-key'
             - Name: CHATSETTINGS__AIAPIKEY

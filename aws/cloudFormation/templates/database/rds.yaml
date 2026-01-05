@@ -12,9 +12,9 @@ Parameters:
     Type: String
   DbAllocatedStorage:
     Type: Number
-  PublicSubnet1Id:
+  PrivateSubnet1Id:
     Type: String
-  PublicSubnet2Id:
+  PrivateSubnet2Id:
     Type: String
   RdsSecurityGroupId:
     Type: String
@@ -46,10 +46,10 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupName: !Sub '${AppName}-${EnvironmentName}-rds-subnet-group'
-      DBSubnetGroupDescription: Subnets for RDS
+      DBSubnetGroupDescription: Subnets for RDS in private network
       SubnetIds:
-        - !Ref PublicSubnet1Id
-        - !Ref PublicSubnet2Id
+        - !Ref PrivateSubnet1Id
+        - !Ref PrivateSubnet2Id
 
   RdsInstance:
     Type: AWS::RDS::DBInstance
@@ -69,7 +69,7 @@ Resources:
       VPCSecurityGroups:
         - !Ref RdsSecurityGroupId
       DBSubnetGroupName: !Ref DbSubnetGroup
-      PubliclyAccessible: true
+      PubliclyAccessible: false
       BackupRetentionPeriod: 7
       LicenseModel: license-included
 

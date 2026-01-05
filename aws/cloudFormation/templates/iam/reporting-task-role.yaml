@@ -22,7 +22,7 @@ Resources:
             Action:
               - sts:AssumeRole
       Policies:
-        - PolicyName: ReportingSecrets
+        - PolicyName: ReportingServicePolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:

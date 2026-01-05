@@ -23,6 +23,9 @@ param storageKey string
 @secure()
 param chatBotDirectLineSecret string
 
+param clientId string
+param tenantId string
+
 @secure()
 param aiApiKey string
 param aiChatModelId string
@@ -53,6 +56,18 @@ resource apiApp 'Microsoft.Web/sites@2022-09-01' = {
         {
           name: 'DOCKER_REGISTRY_SERVER_USERNAME'
           value: registryUsername
+        }
+        {
+          name: 'LiveCorsOrigins'
+          value: 'https://${replace(replace(uiName, 'app-service-', ''), '-ui', '')}.${dnsZone}'
+        }
+        {
+          name: 'ENTRAID__CLIENTID'
+          value: clientId
+        }
+        {
+          name: 'ENTRAID__TENANTID'
+          value: tenantId
         }
         {
           name: 'ENTRAID__APISECRET'
