@@ -3,6 +3,12 @@ param(
     [Parameter(Mandatory=$true)][string]$EntraApiKey
 )
 
+Write-Host ""
+Write-Host "=============================================================================" -ForegroundColor DarkCyan
+Write-Host "   Aubrisa Andes - Secrets"                                                    -ForegroundColor White
+Write-Host "=============================================================================" -ForegroundColor DarkCyan
+Write-Host ""
+
 Write-Host "Setting Entra API Key secret..." -ForegroundColor Cyan
 
 aws secretsmanager update-secret `

@@ -29,9 +29,11 @@ function ReplaceParameterValue {
 }
 
 Write-Host ""
-Write-Host "=====================================================" -ForegroundColor DarkCyan
+Write-Host "=============================================================================" `
+    -ForegroundColor DarkCyan
 Write-Host "   Aubrisa Andes - AWS CloudFormation Deployment"      -ForegroundColor White
-Write-Host "=====================================================" -ForegroundColor DarkCyan
+Write-Host "=============================================================================" `
+    -ForegroundColor DarkCyan
 Write-Host ""
 
 Write-Host "Packaging..."
@@ -40,7 +42,7 @@ aws cloudformation package `
    --template-file ../cloudFormation/templates/app.yaml `
    --s3-bucket andes-cfn-templates-eu-west-2 `
    --output-template-file ../cloudFormation/templates/app-packaged.yaml `
-   --force-upload
+   --force-upload  | Out-Null
 
 if($SetParameters -eq $True) {
    Write-Host "Setting parameters..."

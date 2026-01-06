@@ -48,12 +48,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Setting Parameter Store Values" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "App Name: $AppName" -ForegroundColor Yellow
-Write-Host "Environment: $EnvironmentName" -ForegroundColor Yellow
-Write-Host "Region: $Region" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "=============================================================================" -ForegroundColor DarkCyan
+Write-Host "   Aubrisa Andes - Setting Parameter Store Values"                                    -ForegroundColor White
+Write-Host "=============================================================================" -ForegroundColor DarkCyan
 Write-Host ""
 
 # Set Tenant ID
@@ -127,5 +125,3 @@ Write-Host "  - $clientIdParamName" -ForegroundColor White
 Write-Host "  - $botTenantIdParamName" -ForegroundColor White
 Write-Host "  - $botAppIdParamName" -ForegroundColor White
 Write-Host ""
-Write-Host "These values will now be read by your ECS tasks at runtime." -ForegroundColor Cyan
-Write-Host "You can update them at any time without redeploying the stack." -ForegroundColor Cyan

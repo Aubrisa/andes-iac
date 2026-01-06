@@ -87,9 +87,11 @@ $domain = ($AppUrl -replace '^https?://','').TrimEnd('/') -split '/' | Select-Ob
 $identifierUri = "api://$environment.$domain"
 
 Write-Host ""
-Write-Host "=====================================================" -ForegroundColor DarkCyan
+Write-Host "=============================================================================" `
+    -ForegroundColor DarkCyan
 Write-Host "   Aubrisa Andes Entra ID Application Registration"    -ForegroundColor White
-Write-Host "=====================================================" -ForegroundColor DarkCyan
+Write-Host "=============================================================================" `
+    -ForegroundColor DarkCyan
 Write-Host ""
 
 Write-Host "Connecting to Microsoft Graph. You will be prompted to sign in with an admin account..."
@@ -267,15 +269,13 @@ try {
 
     # Output results
     $clientId = $app.AppId
-    $secretId = $secret.Id
     $secretValue = $secret.SecretText
 
     Write-Host "`n---------------------------------------------------------------------" `
-        -ForegroundColor DarkCyan
-    Write-Host "Andes Entra ID Application Registration created" `
-        -ForegroundColor White
+        -ForegroundColor Green
+    Write-Host "$([char]0x2713) App Registration Complete" -ForegroundColor Green
     Write-Host "---------------------------------------------------------------------" `
-        -ForegroundColor DarkCyan
+        -ForegroundColor Green
 
     Write-Host "`nSettings Required for Andes configuration:`n"
     Write-KeyValue "  Tenant Id             : $TenantId"

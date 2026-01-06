@@ -1,10 +1,14 @@
 ## Andes AWS Deployment Guide
 
 ### Quick start
-1. Create Entra ID App Registration
-2. Deploy AWS Stack
-3. Initialize Databases
-4. Start application stack
+
+Run the following script to deploy an instance of Andes:
+
+```
+.\scripts\full-deploy.ps1 
+
+
+```
 
 ```mermaid
 graph TB
